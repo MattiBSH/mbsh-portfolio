@@ -1,0 +1,338 @@
+.html{
+  background-color: #232020;
+}
+
+.container {
+  min-height: 100vh;
+  padding-left: 10%;
+  padding-right: 10%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #2d2d2d;
+}
+
+.mainContent{
+  padding-left: 10%;
+  padding-right: 10%;
+  background-color: #f0faff;
+  border-radius: 25px;
+}
+
+.spaceAround{
+  padding: 10%;
+}
+
+.spaceAtStart{
+  padding-top: 10%;
+}
+
+.edgeSpace{
+  padding-top: 5%;
+  background-color: #2d2d2d;
+}
+
+.toolbar{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 50%;
+  padding: 0%;
+  border: #212121, 2px solid;
+  border-radius: 25px;
+  background-color: #232020;
+}
+
+.toolbarHolder{
+  background-color: #2d2d2d;
+  padding-left: 10%;
+  padding-right: 10%;
+  padding-bottom: 1%;
+  padding-top: 1%;
+}
+
+.threeBlocks {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
+}
+
+.description{
+  color: black;
+  margin-top: 0%;
+  font-size: 1vw;
+
+}
+
+.description2{
+  padding-left: 8%;
+  padding-right: 8%;
+  color: black;
+  font-weight: 200;
+  margin-top: 0%;
+  font-size: 0.8vw;
+
+}
+
+.third {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+}
+
+.headline {
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: black;
+  font-size: 3vw;
+
+}
+
+.timelineHeader{
+  font-size: 2vw;
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: black;
+}
+
+.timelineTimePeriod{
+  font-size: 2vw;
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: black;
+}
+
+.basicHeadline{
+  font-size: 2rem;
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: black;
+}
+
+.threePointBreakBox{
+  margin-top: 10%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
+  border: #ffffff 2px solid;
+  border-radius: 25px;
+  background: rgba(0, 118, 165, 0.192);
+
+}
+
+.center{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.contactMe{
+  width: 50%;
+  flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
+  border: #ffffff 2px solid;
+  border-radius: 25px;
+  margin-top: 10%;
+  padding: 4%;
+  background-color: rgba(0, 118, 165, 0.192);
+  margin-bottom: 10%;
+}
+
+.tintedShadow {
+  border-radius: 100%;
+  box-shadow: 
+  0 -10px 20px -5px rgba(98, 208, 255, 0.653), /* Blue shadow at the top */
+  0 0 10px 5px rgba(165, 111, 69, 0.553); /* Red-tinted shadow *//* Red tinted shadow */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+}
+
+.profileImage {
+  transition: transform 0.8s ease-in-out;
+  border-radius: 40%;
+}
+
+.projectsDiv{
+  padding-left: 20%;
+  padding-right: 20%;
+}
+
+.profileImage:hover {
+  border-radius: 40%;
+  transform: scale(1.4);
+}
+
+.buttonStyle {
+  text-decoration: none;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  border: black 2px solid;
+  border-radius: 22px;
+  padding: 20px 30px;
+  font-size: 1.0vw;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.point{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1%;
+  color: black;
+  font-size: 2vw;
+}
+
+.line {
+  width: 100%;
+  height: 3px; 
+  background-color: #000000; 
+  margin: 20px 0; 
+}
+
+.info{
+  text-align: center;
+  font-size: larger;
+  font-weight: 300;
+  color: rgb(0, 0, 0);
+  font-size: 1.2vw;
+
+}
+
+.title {
+  font-size: 1.0rem;
+  margin: 0;
+  color: rgb(0, 0, 0);
+
+}
+
+.title a {
+  color: #0070f3;
+  text-decoration: none;
+}
+
+.title a:hover,
+.title a:focus,
+.title a:active {
+  text-decoration: underline;
+}
+
+.education{
+  margin-top: 10%;
+  text-align: center;
+}
+
+/* Container for the timeline */
+.timeline {
+  padding-top: 2%;
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Vertical line in the middle of the timeline */
+.timeline::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  background-color: #333;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  margin-left: -3px;
+}
+
+
+
+/* Styling for each timeline item */
+.timelineItem {
+  padding: 10px 0px;
+  position: relative;
+  background-color: inherit;
+  width: 50%;
+}
+
+/* Circle indicator for each timeline item */
+.timelineItem:nth-child(odd):after {
+  content: '';
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  right: -17px;
+  background-color: white;
+  border: 4px solid #333;
+  top: 20px;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Circle indicator for each timeline item */
+.timelineItem:nth-child(even):after {
+  content: '';
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  right: 95%;
+  background-color: white;
+  border: 4px solid #333;
+  top: 20px;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Position odd timeline items to the left */
+.timelineItem:nth-child(odd) {
+  left: 0;
+}
+
+/* Position even timeline items to the right */
+.timelineItem:nth-child(even) {
+  left: 50%;
+}
+
+/* Styling for the content inside each timeline item */
+.timelineContent {
+  padding: 20px;
+  background-color: white;
+  position: relative;
+  border-radius: 6px;
+  box-shadow: #000000 0px 0px 1px 0.1px;
+}
+
+/* Styling for the title inside each timeline item */
+.timelineContent h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+/* Styling for the description inside each timeline item */
+.timelineContent p {
+  margin: 0;
+  color: #212121;
+}
+
+.headlineWhite{
+  font-size: 2rem;
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: white;
+  text-align: center;
+  padding: 2%;
+}
+

@@ -1,0 +1,70 @@
+@import "~slick-carousel/slick/slick.css";
+@import "~slick-carousel/slick/slick-theme.css";
+
+html{
+  background-color: #232020;
+}
+body {
+  padding: 0;
+  margin: 0;
+  font-family:
+    Inter,
+    -apple-system,
+    BlinkMacSystemFont,
+    Segoe UI,
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    Fira Sans,
+    Droid Sans,
+    Helvetica Neue,
+    sans-serif;
+
+}
+
+h1,h2,h3,h4,h6 {
+  margin: 0;
+  color: white;
+}
+
+h4{
+  font-size: 0.7rem;
+  font-weight: 400;
+}
+
+p{
+  color: #c6c6c6;
+  font-size: x-small
+}
+
+a {
+  color: inherit;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+}
+
+h5 {
+  margin: 0;
+  color: #202020;
+}
+
+footer {
+  text-align: center;
+  padding: 1rem 0;
+  background-color: #f1f1f1;
+  width: 100%;
+}
+

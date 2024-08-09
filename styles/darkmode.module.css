@@ -1,0 +1,332 @@
+.html{
+  background-color: #232020;
+}
+
+.container {
+  min-height: 100vh;
+  padding-left: 10%;
+  padding-right: 10%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #2d2d2d;
+}
+
+.mainContent{
+  padding-left: 10%;
+  padding-right: 10%;
+  background-color: #232020;
+  border-radius: 25px;
+}
+
+.spaceAround{
+  padding: 10%;
+}
+
+.spaceAtStart{
+  padding-top: 10%;
+}
+
+.toolbar{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 50%;
+  padding: 0%;
+  border: #212121, 2px solid;
+  border-radius: 25px;
+  background-color: #232020;
+}
+
+.toolbarHolder{
+  background-color: #2d2d2d;
+  padding-left: 10%;
+  padding-right: 10%;
+  padding-bottom: 1%;
+  padding-top: 1%;
+}
+
+.edgeSpace{
+  padding-top: 5%;
+  background-color: #2d2d2d;
+}
+
+.description{
+  color: white;
+  margin-top: 0%;
+  font-size: 1vw;
+
+}
+
+.description2{
+  padding-left: 8%;
+  padding-right: 8%;
+  color: rgb(255, 255, 255);
+  font-weight: 200;
+  margin-top: 0%;
+  font-size: 0.8vw;
+
+}
+
+.basicHeadline{
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: white;
+  font-size: 3vw;
+
+}
+
+.threeBlocks {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
+}
+
+.third {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+}
+
+.headline {
+  font-size: 3vw;
+  letter-spacing: -0.05rem;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.timelineHeader{
+  font-size: 2vw;
+  letter-spacing: -0.05rem;
+  line-height: 1.1; 
+  margin: 0;
+  color: white;
+}
+.timelineTimePeriod{
+  font-size: 2vw;
+  letter-spacing: -0.05rem;
+  line-height: 1.1; 
+  margin: 0;
+  color: rgb(255, 255, 255);
+}
+
+
+.threePointBreakBox{
+  margin-top: 10%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
+  border: #ffffff 2px solid;
+  border-radius: 25px;
+  background-color: #2d2d2d;
+
+}
+
+.center{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.contactMe{
+  width: 50%;
+  flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
+  border: #ffffff 2px solid;
+  border-radius: 25px;
+  margin-top: 10%;
+  padding: 4%;
+  margin-bottom: 10%;
+  background-color: #2d2d2d;
+
+}
+
+.tintedShadow {
+  border-radius: 100%;
+  box-shadow: 
+  0 -10px 20px -5px rgba(98, 208, 255, 0.653), /* Blue shadow at the top */
+  0 0 10px 5px rgba(165, 111, 69, 0.553); /* Red-tinted shadow *//* Red tinted shadow */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+}
+
+.profileImage {
+  transition: transform 0.8s ease-in-out;
+  border-radius: 40%;
+}
+
+.profileImage:hover {
+  border-radius: 40%;
+  transform: scale(1.4);
+}
+
+.buttonStyle {
+  text-decoration: none;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  border: black 2px solid;
+  border-radius: 22px;
+  padding: 20px 30px;
+  font-size: 1.0vw;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.point{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1%;
+  font-size: 2vw;
+}
+
+.line {
+  width: 100%;
+  height: 3px; 
+  background-color: #ffffff; 
+  margin: 20px 0; 
+}
+
+.info{
+  text-align: center;
+  font-size: larger;
+  font-weight: 300;
+  font-size: 1.2vw;
+
+}
+
+.title {
+  font-size: 1.0rem;
+  margin: 0;
+}
+
+.title a {
+  color: #0070f3;
+  text-decoration: none;
+}
+
+.title a:hover,
+.title a:focus,
+.title a:active {
+  text-decoration: underline;
+}
+
+.education{
+  margin-top: 10%;
+  text-align: center;
+}
+
+/* Container for the timeline */
+.timeline {
+  padding-top: 2%;
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Vertical line in the middle of the timeline */
+.timeline::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  background-color: #333;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  margin-left: -3px;
+}
+
+/* Styling for each timeline item */
+.timelineItem {
+  padding: 10px 0px;
+  position: relative;
+  background-color: inherit;
+  width: 50%;
+}
+
+/* Circle indicator for each timeline item */
+.timelineItem:nth-child(odd):after {
+  content: '';
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  right: -17px;
+  background-color: white;
+  border: 4px solid #333;
+  top: 50px;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Circle indicator for each timeline item */
+.timelineItem:nth-child(even):after {
+  content: '';
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  right: 94.5%;
+  background-color: white;
+  border: 4px solid #333;
+  top: 35px;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Position odd timeline items to the left */
+.timelineItem:nth-child(odd) {
+  left: 0;
+}
+
+/* Position even timeline items to the right */
+.timelineItem:nth-child(even) {
+  left: 50%;
+}
+
+/* Styling for the content inside each timeline item */
+.timelineContent {
+  padding: 20px;
+  background-color: white;
+  position: relative;
+  border-radius: 6px;
+}
+
+/* Styling for the title inside each timeline item */
+.timelineContent h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+/* Styling for the description inside each timeline item */
+.timelineContent p {
+  margin: 0;
+  color: #212121;
+}
+
+.headlineWhite{
+  font-size: 3rem;
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: white;
+  text-align: center;
+  padding: 2%;
+
+}
+
+.projectsDiv{
+  padding-left: 20%;
+  padding-right: 20%;
+}
+
