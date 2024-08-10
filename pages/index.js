@@ -10,7 +10,7 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
 
   const styles = darkMode ? darkStyles : lightStyles;
-  const [language, setLanguage] = useState("danish");
+  const [language, setLanguage] = useState("Danish");
   const [languageURL, setLanguageURL] = useState("/danish_index");
 
 
@@ -164,14 +164,14 @@ export default function Home() {
 
           <div className={styles.center}>
             <div className={styles.contactMe}>
-              <h2 className={styles.timelineHeader}>Contact me</h2>
+              <h2 className={styles.contactMeHeader}>Contact me</h2>
               <br />
-              <h4 className={styles.description}>
+              <h4 className={styles.contactText}>
                 Feel free to contact me if you have any questions
               </h4>
               <br />
-              <h4 className={styles.description}>Email: mattibenhansen@gmail.com ✉️</h4>
-              <h4 className={styles.description}>
+              <h4 className={styles.contactText}>Email: mattibenhansen@gmail.com ✉️</h4>
+              <h4 className={styles.contactText}>
                 LinkedIn:{" "}
                 <Link
                   href={"https://www.linkedin.com/in/matti-hansen-74a454109/"}
