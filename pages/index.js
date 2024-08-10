@@ -55,8 +55,7 @@ export default function Home() {
     <div>
       <div className={styles.toolbarHolder}>
       <div className={styles.toolbar}>
-          <button onClick={changeTheme} className={styles.buttonStyle}><b>Dark / Light</b></button>
-          <button onClick={randomEffect} className={styles.buttonStyle}><b>Random effect</b></button>
+      <button onClick={changeTheme} className={styles.buttonStyle}> <b>{darkMode ? "Light" : "Dark"}</b></button>
           <Link href={languageURL} className={styles.buttonStyle} ><b>{language}</b></Link>
           </div>
 
@@ -199,7 +198,7 @@ export default function Home() {
       <div className={styles.edgeSpace}></div>
 
       <footer>
-        <h5>Made by Matti Hansen</h5>
+        <h5 onClick={randomEffect}>Made by Matti Hansen</h5>
       </footer>
     </div>
   );

@@ -10,7 +10,7 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
 
   const styles = darkMode ? darkStyles : lightStyles;
-  const [language, setLanguage] = useState("English");
+  const [language, setLanguage] = useState("Engelsk");
 
   const [languageURL, setLanguageURL] = useState("/");
 
@@ -55,8 +55,7 @@ export default function Home() {
     <div>
       <div className={styles.toolbarHolder}>
       <div className={styles.toolbar}>
-          <button onClick={changeTheme} className={styles.buttonStyle}><b>Dark / Light</b></button>
-          <button onClick={randomEffect} className={styles.buttonStyle}><b>Random effect</b></button>
+          <button onClick={changeTheme} className={styles.buttonStyle}> <b>{darkMode ? "Lys" : "Mørk"}</b></button>
           <Link href={languageURL} className={styles.buttonStyle} ><b>{language}</b></Link>
           </div>
 
@@ -167,14 +166,14 @@ export default function Home() {
 
           <div className={styles.center}>
             <div className={styles.contactMe}>
-              <h2 className={styles.timelineHeader}>Kontakt mig</h2>
+              <h2 className={styles.contactMeHeader}>Kontakt mig</h2>
               <br />
-              <h4 className={styles.description}>
+              <h4 className={styles.contactText}>
                 I kan kontakte mig på følgende måder:
               </h4>
               <br />
-              <h4 className={styles.description}>Email: mattibenhansen@gmail.com ✉️</h4>
-              <h4 className={styles.description}>
+              <h4 className={styles.contactText}>Email: mattibenhansen@gmail.com ✉️</h4>
+              <h4 className={styles.contactText}>
                 LinkedIn:{" "}
                 <Link
                   href={"https://www.linkedin.com/in/matti-hansen-74a454109/"}
@@ -202,7 +201,7 @@ export default function Home() {
       <div className={styles.edgeSpace}></div>
 
       <footer>
-        <h5>Lavet af Matti Hansen</h5>
+        <h5 onClick={randomEffect}>Lavet af Matti Hansen</h5>
       </footer>
     </div>
   );

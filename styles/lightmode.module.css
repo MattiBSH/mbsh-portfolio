@@ -37,9 +37,8 @@
 
 .toolbar{
   display: flex;
-  justify-content: space-between;
+  width: fit-content;
   align-items: center;
-  width: 50%;
   padding: 0%;
   border: #212121, 2px solid;
   border-radius: 25px;
@@ -65,7 +64,7 @@
 .description{
   color: black;
   margin-top: 0%;
-  font-size: 1vw;
+  font-size: 1.2vw;
 
 }
 
@@ -75,7 +74,7 @@
   color: black;
   font-weight: 200;
   margin-top: 0%;
-  font-size: 0.8vw;
+  font-size: 1vw;
 
 }
 
@@ -144,7 +143,7 @@
 .contactMe{
   width: 80%;
   flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
-  border: #ffffff 8px solid;
+  border: #ffffff 4px solid;
   border-radius: 25px;
   margin-top: 10%;
   padding: 4%;
@@ -153,7 +152,7 @@
 }
 
 .contactMeHeader{
-  font-size: 2.2vw;
+  font-size: 2.8vw;
   letter-spacing: -0.05rem;
   line-height: 1.1; /* Adjust line height for readability */
   margin: 0;
@@ -200,14 +199,17 @@
 
 .buttonStyle {
   text-decoration: none;
-  background-color: #ffffff;
-  color: rgb(0, 0, 0);
-  border: black 2px solid;
-  border-radius: 22px;
-  padding: 20px 30px;
-  font-size: 1.0vw;
+  background-color: white;
+  color: #444; /* Medium-dark text */
+  border: 2px solid #444; /* Dark border */
+  border-radius: 20px;
+  padding: 10px 30px;
+  font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .point{
@@ -236,23 +238,6 @@
 
 }
 
-.title {
-  font-size: 1.0rem;
-  margin: 0;
-  color: rgb(0, 0, 0);
-
-}
-
-.title a {
-  color: #0070f3;
-  text-decoration: none;
-}
-
-.title a:hover,
-.title a:focus,
-.title a:active {
-  text-decoration: underline;
-}
 
 .education{
   margin-top: 10%;
@@ -378,10 +363,9 @@
   }
 
   .toolbar{
-    width: 40%;
     padding: 0%;
-    border: #2d2d2d, 2px solid;
+    border: #212121, 2px solid;
     border-radius: 25px;
-    background-color: #2d2d2d;
+    background-color: #232020;
   }
 }
