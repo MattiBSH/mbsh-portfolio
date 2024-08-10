@@ -161,6 +161,15 @@
   padding: 1rem;
 }
 
+.third2 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+}
+
 
 
 .timelineTimePeriod{
@@ -374,7 +383,7 @@
   .description{
     color: black;
     margin-top: 0%;
-    font-size: 1.8vw;
+    font-size: 2vw;
   
   }
   
@@ -384,12 +393,12 @@
     color: black;
     font-weight: 200;
     margin-top: 0%;
-    font-size: 1.6vw;
+    font-size: 1.8vw;
   
   }
   
   .basicHeadline{
-    font-size: 3.3vw;
+    font-size: 3.5vw;
     letter-spacing: -0.05rem;
     line-height: 1.1; /* Adjust line height for readability */
     margin: 0;
@@ -397,7 +406,7 @@
   }
   
   .contactText{
-    font-size: 2.1vw;
+    font-size: 2.3vw;
     letter-spacing: -0.05rem;
     line-height: 1.1; /* Adjust line height for readability */
     margin: 0;
@@ -407,7 +416,7 @@
   }
   
   .contactMeHeader{
-    font-size: 3.1vw;
+    font-size: 3.3vw;
     letter-spacing: -0.05rem;
     line-height: 1.1; /* Adjust line height for readability */
     margin: 0;
@@ -421,7 +430,7 @@
     font-size: larger;
     font-weight: 300;
     color: rgb(0, 0, 0);
-    font-size: 1.5vw;
+    font-size: 1.7vw;
   
   }
 
@@ -432,7 +441,7 @@
     align-items: center;
     padding: 1%;
     color: black;
-    font-size: 2.3vw;
+    font-size: 2.5vw;
   }
 
   .threeBlocks {
@@ -440,19 +449,29 @@
   }
 
   .headline {
+    font-size: 8vw;
     letter-spacing: -0.05rem;
     line-height: 1.1; /* Adjust line height for readability */
     margin: 0;
     color: black;
-    font-size: 8vw;
-  
   }
   
   .timelineHeader{
-    font-size: 2.3vw;
+    font-size: 2.5vw;
     letter-spacing: -0.05rem;
     line-height: 1.1; /* Adjust line height for readability */
     margin: 0;
     color: black;
+  }
+
+  .threePointBreakBox{
+    display: contents;
+  }
+
+  .third2{
+    margin-top: 2%;
+    background: rgba(0, 118, 165, 0.192);
+    border-radius: 25px;
+
   }
 }

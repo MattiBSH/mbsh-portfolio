@@ -143,9 +143,6 @@
 }
 
 
-
-
-
 .threeBlocks {
   display: flex;
   justify-content: space-around;
@@ -155,6 +152,15 @@
 }
 
 .third {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+}
+
+.third2 {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -192,9 +198,6 @@
   justify-content: center;
   align-items: center;
 }
-
-
-
 
 
 .tintedShadow {
@@ -383,7 +386,7 @@
   .description{
     color: white;
     margin-top: 0%;
-    font-size: 1.8vw;
+    font-size: 2vw;
   
   }
   
@@ -393,7 +396,7 @@
     color: rgb(255, 255, 255);
     font-weight: 200;
     margin-top: 0%;
-    font-size: 1.6vw;
+    font-size: 1.8vw;
   
   }
   
@@ -402,11 +405,11 @@
     line-height: 1.1; /* Adjust line height for readability */
     margin: 0;
     color: white;
-    font-size: 3.3vw;
+    font-size: 3.5vw;
   }
   
   .contactText{
-    font-size: 2.1vw;
+    font-size: 2.3vw;
     letter-spacing: -0.05rem;
     line-height: 1.1; /* Adjust line height for readability */
     margin: 0;
@@ -418,7 +421,7 @@
 
   
   .contactMeHeader{
-    font-size: 3.1vw;
+    font-size: 3.3vw;
     letter-spacing: -0.05rem;
     line-height: 1.1; /* Adjust line height for readability */
     margin: 0;
@@ -429,9 +432,8 @@
   
   .info{
     text-align: center;
-    font-size: larger;
     font-weight: 300;
-    font-size: 1.5vw;
+    font-size: 1.7vw;
     
   }
 
@@ -441,7 +443,7 @@
     justify-content: center;
     align-items: center;
     padding: 1%;
-    font-size: 2.3vw;
+    font-size: 2.5vw;
   }
 
   .threeBlocks {
@@ -456,11 +458,21 @@
   }
   
   .timelineHeader{
-    font-size: 2.3vw;
+    font-size: 2.5vw;
     letter-spacing: -0.05rem;
     line-height: 1.1; 
     margin: 0;
     color: white;
+  }
+
+  .threePointBreakBox{
+    display: contents;
+  }
+
+  .third2{
+    margin-top: 2%;
+    background-color: #2d2d2d;
+    border-radius: 25px;
   }
 
 }

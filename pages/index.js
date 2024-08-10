@@ -107,14 +107,14 @@ export default function Home() {
             </div>
 
             <div className={styles.threePointBreakBox}>
-              <div className={styles.third}>
+              <div className={styles.third2}>
                 <h2 className={styles.point}>Frontend</h2>
                 <h4 className={styles.description}>Creating user interfaces that are easy to use and understand</h4>
                 <p className={styles.description2}>I have experience using Angular, React, and Flutter for
                   building dynamic and responsive front-end applications.
                 </p>
               </div>
-              <div className={styles.third}>
+              <div className={styles.third2}>
                 <h2 className={styles.point}>Backend</h2>
                 <h4 className={styles.description}>Creating and maintaining databases and server-side code</h4>
                 <p className={styles.description2}>
@@ -125,7 +125,7 @@ export default function Home() {
                   handle GDPR sensitive data.
                 </p>
               </div>
-              <div className={styles.third}>
+              <div className={styles.third2}>
                 <h2 className={styles.point}>DevOps</h2>
                 <h4 className={styles.description}>Creating and maintaining CI/CD pipelines</h4>
                 <p className={styles.description2}>

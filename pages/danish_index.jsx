@@ -100,7 +100,7 @@ export default function Home() {
                 />
               </div>
             </div>
-            <div className={styles.third}>
+            <div className={styles.third2}>
               <h3 className={styles.info}>
                 Jeg har arbejdet med flere kommuner og regioner for at hjælpe dem med at
                 digitalisere deres arbejdsgange og skabe mere effektive løsninger.
@@ -108,7 +108,7 @@ export default function Home() {
             </div>
 
             <div className={styles.threePointBreakBox}>
-              <div className={styles.third}>
+              <div className={styles.third2}>
                 <h2 className={styles.point}>Frontend</h2>
                 <h4 className={styles.description}>Skabe UI som er let at bruge og forstå</h4>
                 <p className={styles.description2}>Jeg har brugt Angular, React, and Flutter til at
@@ -117,7 +117,7 @@ export default function Home() {
                     intuitive og lette at navigere.
                 </p>
               </div>
-              <div className={styles.third}>
+              <div className={styles.third2}>
                 <h2 className={styles.point}>Backend</h2>
                 <h4 className={styles.description}>Skabe og bibeholde backend systemer</h4>
                 <p className={styles.description2}>
@@ -128,7 +128,7 @@ export default function Home() {
                     håndtere GDPR-følsomme data.
                 </p>
               </div>
-              <div className={styles.third}>
+              <div className={styles.third2}>
                 <h2 className={styles.point}>DevOps</h2>
                 <h4 className={styles.description}>Skabe og bibeholde CI/CD pipelines</h4>
                 <p className={styles.description2}>
