@@ -1,4 +1,77 @@
+/* TEXT */
 
+.description{
+  color: black;
+  margin-top: 0%;
+  font-size: 1.2vw;
+}
+
+.description2{
+  padding-left: 8%;
+  padding-right: 8%;
+  color: black;
+  font-weight: 200;
+  margin-top: 0%;
+  font-size: 1vw;
+
+}
+
+.basicHeadline{
+  font-size: 3vw;
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: black;
+}
+
+.contactText{
+  font-size: 1.8vw;
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: rgb(30, 30, 30);
+  text-align: center;
+  padding: 2%;
+}
+
+.contactMe{
+  width: 80%;
+  flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
+  border: #ffffff 4px solid;
+  border-radius: 25px;
+  margin-top: 10%;
+  padding: 4%;
+  background-color: rgba(0, 118, 165, 0.192);
+  margin-bottom: 10%;
+}
+
+.contactMeHeader{
+  font-size: 2.8vw;
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: rgb(30, 30, 30);
+  text-align: center;
+  padding: 2%;
+}
+
+.info{
+  text-align: center;
+  font-size: larger;
+  font-weight: 300;
+  color: rgb(0, 0, 0);
+  font-size: 1.2vw;
+}
+
+.point{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1%;
+  color: black;
+  font-size: 2vw;
+}
 
 .html{
   background-color: #232020;
@@ -61,22 +134,6 @@
   flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
 }
 
-.description{
-  color: black;
-  margin-top: 0%;
-  font-size: 1.2vw;
-
-}
-
-.description2{
-  padding-left: 8%;
-  padding-right: 8%;
-  color: black;
-  font-weight: 200;
-  margin-top: 0%;
-  font-size: 1vw;
-
-}
 
 .third {
   flex: 1;
@@ -112,13 +169,7 @@
   color: black;
 }
 
-.basicHeadline{
-  font-size: 2rem;
-  letter-spacing: -0.05rem;
-  line-height: 1.1; /* Adjust line height for readability */
-  margin: 0;
-  color: black;
-}
+
 
 .threePointBreakBox{
   margin-top: 10%;
@@ -138,37 +189,6 @@
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.contactMe{
-  width: 80%;
-  flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
-  border: #ffffff 4px solid;
-  border-radius: 25px;
-  margin-top: 10%;
-  padding: 4%;
-  background-color: rgba(0, 118, 165, 0.192);
-  margin-bottom: 10%;
-}
-
-.contactMeHeader{
-  font-size: 2.8vw;
-  letter-spacing: -0.05rem;
-  line-height: 1.1; /* Adjust line height for readability */
-  margin: 0;
-  color: rgb(30, 30, 30);
-  text-align: center;
-  padding: 2%;
-}
-
-.contactText{
-  font-size: 1.8vw;
-  letter-spacing: -0.05rem;
-  line-height: 1.1; /* Adjust line height for readability */
-  margin: 0;
-  color: rgb(30, 30, 30);
-  text-align: center;
-  padding: 2%;
 }
 
 .tintedShadow {
@@ -212,15 +232,7 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.point{
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1%;
-  color: black;
-  font-size: 2vw;
-}
+
 
 .line {
   width: 100%;
@@ -228,16 +240,6 @@
   background-color: #000000; 
   margin: 20px 0; 
 }
-
-.info{
-  text-align: center;
-  font-size: larger;
-  font-weight: 300;
-  color: rgb(0, 0, 0);
-  font-size: 1.2vw;
-
-}
-
 
 .education{
   margin-top: 10%;
@@ -263,8 +265,6 @@
   left: 50%;
   margin-left: -3px;
 }
-
-
 
 /* Styling for each timeline item */
 .timelineItem {
@@ -367,5 +367,77 @@
     border: #212121, 2px solid;
     border-radius: 25px;
     background-color: #232020;
+  }
+
+  .description{
+    color: black;
+    margin-top: 0%;
+    font-size: 1.8vw;
+  
+  }
+  
+  .description2{
+    padding-left: 8%;
+    padding-right: 8%;
+    color: black;
+    font-weight: 200;
+    margin-top: 0%;
+    font-size: 1.6vw;
+  
+  }
+  
+  .basicHeadline{
+    font-size: 3.3vw;
+    letter-spacing: -0.05rem;
+    line-height: 1.1; /* Adjust line height for readability */
+    margin: 0;
+    color: black;
+  }
+  
+  .contactText{
+    font-size: 2.1vw;
+    letter-spacing: -0.05rem;
+    line-height: 1.1; /* Adjust line height for readability */
+    margin: 0;
+    color: rgb(30, 30, 30);
+    text-align: center;
+    padding: 2%;
+  }
+  
+  .contactMeHeader{
+    font-size: 3.1vw;
+    letter-spacing: -0.05rem;
+    line-height: 1.1; /* Adjust line height for readability */
+    margin: 0;
+    color: rgb(30, 30, 30);
+    text-align: center;
+    padding: 2%;
+  }
+  
+  .info{
+    text-align: center;
+    font-size: larger;
+    font-weight: 300;
+    color: rgb(0, 0, 0);
+    font-size: 1.5vw;
+  
+  }
+
+  .point{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1%;
+    color: black;
+    font-size: 2.3vw;
+  }
+
+  .threeBlocks {
+    display: contents;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
   }
 }

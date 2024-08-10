@@ -1,3 +1,78 @@
+/* TEXT */
+
+.description{
+  color: white;
+  margin-top: 0%;
+  font-size: 1.2vw;
+
+}
+
+.description2{
+  padding-left: 8%;
+  padding-right: 8%;
+  color: rgb(255, 255, 255);
+  font-weight: 200;
+  margin-top: 0%;
+  font-size: 1vw;
+
+}
+
+.basicHeadline{
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: white;
+  font-size: 3vw;
+}
+
+.contactText{
+  font-size: 1.8vw;
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: white;
+  text-align: center;
+  padding: 2%;
+}
+
+.contactMe{
+  width: 80%;
+  flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
+  border: #ffffff 4px solid;
+  border-radius: 25px;
+  margin-top: 10%;
+  padding: 4%;
+  margin-bottom: 10%;
+  background-color: #2d2d2d;
+
+}
+
+.contactMeHeader{
+  font-size: 2.8vw;
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: white;
+  text-align: center;
+  padding: 2%;
+}
+
+.info{
+  text-align: center;
+  font-size: larger;
+  font-weight: 300;
+  font-size: 1.2vw;
+  
+}
+
+.point{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1%;
+  font-size: 2vw;
+}
 
 .html{
   background-color: #232020;
@@ -52,31 +127,9 @@
   background-color: #2d2d2d;
 }
 
-.description{
-  color: white;
-  margin-top: 0%;
-  font-size: 1.2vw;
 
-}
 
-.description2{
-  padding-left: 8%;
-  padding-right: 8%;
-  color: rgb(255, 255, 255);
-  font-weight: 200;
-  margin-top: 0%;
-  font-size: 1vw;
 
-}
-
-.basicHeadline{
-  letter-spacing: -0.05rem;
-  line-height: 1.1; /* Adjust line height for readability */
-  margin: 0;
-  color: white;
-  font-size: 3vw;
-
-}
 
 .threeBlocks {
   display: flex;
@@ -138,37 +191,9 @@
   align-items: center;
 }
 
-.contactMe{
-  width: 80%;
-  flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
-  border: #ffffff 4px solid;
-  border-radius: 25px;
-  margin-top: 10%;
-  padding: 4%;
-  margin-bottom: 10%;
-  background-color: #2d2d2d;
 
-}
 
-.contactMeHeader{
-  font-size: 2.8vw;
-  letter-spacing: -0.05rem;
-  line-height: 1.1; /* Adjust line height for readability */
-  margin: 0;
-  color: white;
-  text-align: center;
-  padding: 2%;
-}
 
-.contactText{
-  font-size: 1.8vw;
-  letter-spacing: -0.05rem;
-  line-height: 1.1; /* Adjust line height for readability */
-  margin: 0;
-  color: white;
-  text-align: center;
-  padding: 2%;
-}
 
 .tintedShadow {
   border-radius: 100%;
@@ -206,14 +231,7 @@
   transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-.point{
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 1%;
-  font-size: 2vw;
-}
+
 
 .line {
   width: 100%;
@@ -222,13 +240,7 @@
   margin: 20px 0; 
 }
 
-.info{
-  text-align: center;
-  font-size: larger;
-  font-weight: 300;
-  font-size: 1.2vw;
-  
-}
+
 
 .education{
   margin-top: 10%;
@@ -364,6 +376,74 @@
     border: #212121, 2px solid;
     border-radius: 25px;
     background-color: #232020;
+  }
+
+  .description{
+    color: white;
+    margin-top: 0%;
+    font-size: 1.8vw;
+  
+  }
+  
+  .description2{
+    padding-left: 8%;
+    padding-right: 8%;
+    color: rgb(255, 255, 255);
+    font-weight: 200;
+    margin-top: 0%;
+    font-size: 1.6vw;
+  
+  }
+  
+  .basicHeadline{
+    letter-spacing: -0.05rem;
+    line-height: 1.1; /* Adjust line height for readability */
+    margin: 0;
+    color: white;
+    font-size: 3.3vw;
+  }
+  
+  .contactText{
+    font-size: 2.1vw;
+    letter-spacing: -0.05rem;
+    line-height: 1.1; /* Adjust line height for readability */
+    margin: 0;
+    color: white;
+    text-align: center;
+    padding: 2%;
+  }
+  
+
+  
+  .contactMeHeader{
+    font-size: 3.1vw;
+    letter-spacing: -0.05rem;
+    line-height: 1.1; /* Adjust line height for readability */
+    margin: 0;
+    color: white;
+    text-align: center;
+    padding: 2%;
+  }
+  
+  .info{
+    text-align: center;
+    font-size: larger;
+    font-weight: 300;
+    font-size: 1.5vw;
+    
+  }
+
+  .point{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1%;
+    font-size: 2.3vw;
+  }
+
+  .threeBlocks {
+    display: contents;
   }
 
 }
