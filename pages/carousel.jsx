@@ -1,9 +1,7 @@
 // components/ProjectCarousel.js
 
-import React from 'react';
 import Slider from 'react-slick';
-import { useDrag, useDrop } from 'react-dnd';
-import darkStyles from "../styles/darkmode.module.css";
+import { useDrag } from 'react-dnd';
 
 const ProjectCarousel = ({ projects }) => {
   const settings = {
