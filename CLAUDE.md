@@ -20,6 +20,7 @@ nature reels from Matti's YouTube channel.
 npm run dev     # dev server on http://localhost:3000
 npm run build   # production build
 npm start       # serve the production build
+npm run preview # build and serve in one step
 npm test        # Playwright integration tests (builds and serves on :3100)
 npm run test:ui # same, in Playwright's interactive UI
 ```
@@ -42,7 +43,8 @@ verification story.
 components/
   Portfolio.jsx      The entire page, rendered for whichever language it is given
   ProjectCarousel.jsx  react-slick wrapper for the projects section
-  ReelGallery.jsx    Click-to-play YouTube Shorts grid
+  ReelGallery.jsx    Shorts grid plus the focused lightbox viewer
+  Icons.jsx          Inline SVG sun, moon, and the two flags
 lib/
   content.js         All page copy, as CONTENT.en / CONTENT.da, plus the
                      EMAIL / LINKEDIN_URL / YOUTUBE_URL constants
@@ -160,9 +162,35 @@ empty.
 
 **Reels are click-to-play, and must stay that way.** A YouTube iframe pulls
 roughly a megabyte before anyone presses play, so four of them would dwarf the
-rest of the page. `ReelGallery.jsx` renders a lazy-loaded thumbnail from
-`i.ytimg.com` and only swaps in the real player (via `youtube-nocookie.com`) on
-click. Do not replace this with plain iframes.
+rest of the page. The grid renders lazy-loaded thumbnails from `i.ytimg.com`;
+exactly one real player exists at a time, created inside the lightbox via
+`youtube-nocookie.com`. Do not replace this with plain iframes.
+
+Clicking a thumbnail opens a focused viewer. It is rendered with
+`createPortal` into `document.body` — deliberately, so that no ancestor's
+`transform`, `filter` or `overflow` can trap its `position: fixed`. The
+`.reelPoster:hover` transform sits close enough in the tree to make that a real
+risk if it were rendered inline.
+
+The viewer closes on Escape, the close button, and backdrop clicks (the player
+itself stops propagation so clicking the video does not dismiss it); arrow keys
+step between clips and wrap around. It locks `document.body.style.overflow`
+while open and restores the previous value on close — the tests assert the
+restore, because leaving the page unscrollable is the obvious way to break this.
+Focus moves to the close button on open and returns to the originating
+thumbnail on close. True fullscreen is YouTube's own control inside the player,
+which is why the iframe keeps `allowFullScreen`.
+
+**Reel cards must stay 9:16, and that is not a style choice.** YouTube serves
+Shorts thumbnails (`hqdefault.jpg`) as a 4:3 image with the vertical clip
+letterboxed in the centre and blurred stretched filler down each side. The
+centre 9:16 strip is exactly the clean content, so any shorter card ratio
+exposes those blurred bars. `oardefault.jpg` is natively vertical but returns
+404 for some videos, so it cannot be relied on. **To resize the cards, change the column
+count on `.reelGrid` or the width of `.personal` — never the `aspect-ratio` on
+`.reelPoster`.** They currently run four-up on one row at 195x346, dropping to
+two-up at 125x222 below 900px. `.personal` is deliberately 100% wide, unlike
+`.contactMe` at 50%, because four cards do not fit on a half-width row.
 
 The copy is deliberately general about what the videos contain — the channel
 sits behind a consent redirect that cannot be read programmatically, so nothing
@@ -177,6 +205,33 @@ Two testing gotchas this area introduced:
   switch — ambiguous, so those locators pass `exact: true`.
 - Reel thumbnails are `loading="lazy"` and sit below the fold, so a test must
   `scrollIntoViewIfNeeded()` and poll before asserting `naturalWidth`.
+
+## Toolbar icons
+
+There is no navigation bar. The two controls — theme and language — are matched
+46px circles sitting at the top right of the page, directly on the background
+above the content panel (40px below 480px wide). `.toolbar` is only a flex row
+for positioning; it has no background, border or width of its own, and giving it
+any would put the old pill bar back. No text labels, so both carry `aria-label`s
+from `themeAria` / `switchAria` in `lib/content.js`.
+
+**The sun/moon swap is done in CSS, not React.** Both icons are always in the
+markup and `html[data-theme="dark"]` decides which one displays. This is
+deliberate: the component has no idea what the current theme is, because the
+theme lives on the DOM rather than in React state, and keeping the markup
+identical on server and client is exactly what lets the pre-paint script work
+without a hydration mismatch. Do not "fix" this by lifting the theme into state.
+
+The flag shown is the flag of the language you would switch **to** — Dannebrog
+on the English page, Union Jack on the Danish one, chosen by `switchFlag`.
+
+Icons are inline SVG in `Icons.jsx` rather than emoji, because flag emoji
+(🇩🇰 🇬🇧) do not render as flags on Windows — it shows "DK" / "GB" letters
+instead. The Union Jack's `clipPath` is what counterchanges the red diagonals
+so they fall on the correct side of each white one; removing it produces a flag
+that looks subtly wrong. Flags fill their circle via
+`preserveAspectRatio="xMidYMid slice"`, which crops the sides instead of
+letterboxing.
 
 ## The random effect easter egg
 

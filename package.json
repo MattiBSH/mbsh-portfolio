@@ -1,9 +1,10 @@
 {
   "private": true,
   "scripts": {
-    "build": "next build",
     "dev": "next dev",
+    "build": "next build",
     "start": "next start",
+    "preview": "next build && next start",
     "test": "playwright test",
     "test:ui": "playwright test --ui"
   },

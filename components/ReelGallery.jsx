@@ -1,65 +1,168 @@
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import styles from "../styles/theme.module.css";
 
 // Each YouTube iframe costs roughly a megabyte before anyone presses play, so
-// these render as a thumbnail first and only swap in the real player on click.
-// Thumbnails come straight from YouTube's image CDN, no API key needed.
-const Reel = ({ id, title }) => {
-  const [playing, setPlaying] = useState(false);
-  const label = title || "Nature clip";
+// the grid renders lazy thumbnails from YouTube's image CDN and the real player
+// is only created inside the lightbox, for the one reel being watched.
+const THUMB = (id) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
+const EMBED = (id) =>
+  `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1`;
 
-  if (playing) {
-    return (
-      <div className={styles.reel}>
+function ReelLightbox({ reels, index, onClose, onStep }) {
+  const closeRef = useRef(null);
+  const reel = reels[index];
+
+  useEffect(() => {
+    // Escape closes, arrows move between reels.
+    function onKey(event) {
+      if (event.key === "Escape") onClose();
+      else if (event.key === "ArrowRight") onStep(1);
+      else if (event.key === "ArrowLeft") onStep(-1);
+    }
+    document.addEventListener("keydown", onKey);
+
+    // Stop the page behind the overlay from scrolling.
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [onClose, onStep]);
+
+  useEffect(() => {
+    closeRef.current?.focus();
+  }, []);
+
+  return createPortal(
+    <div
+      className={styles.lightbox}
+      role="dialog"
+      aria-modal="true"
+      aria-label={reel.title || "Nature clip"}
+      data-lightbox
+      onClick={onClose}
+    >
+      <button
+        type="button"
+        ref={closeRef}
+        className={styles.lightboxClose}
+        onClick={onClose}
+        aria-label="Close"
+      >
+        ✕
+      </button>
+
+      {reels.length > 1 && (
+        <button
+          type="button"
+          className={`${styles.lightboxNav} ${styles.lightboxPrev}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onStep(-1);
+          }}
+          aria-label="Previous clip"
+        >
+          ‹
+        </button>
+      )}
+
+      {/* Clicking the backdrop closes; clicking the player itself must not. */}
+      <div
+        className={styles.lightboxInner}
+        onClick={(e) => e.stopPropagation()}
+      >
         <iframe
-          className={styles.reelFrame}
-          src={`https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0`}
-          title={label}
+          key={reel.id}
+          className={styles.lightboxFrame}
+          src={EMBED(reel.id)}
+          title={reel.title || "Nature clip"}
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
           allowFullScreen
         />
-        {title && <p className={styles.reelTitle}>{title}</p>}
       </div>
-    );
-  }
 
-  return (
-    <div className={styles.reel}>
-      <button
-        type="button"
-        data-reel-id={id}
-        className={styles.reelPoster}
-        onClick={() => setPlaying(true)}
-        aria-label={`Play: ${label}`}
-      >
-        {/* Plain <img>: next/image would need remotePatterns config for an
-            external host, and these are already small, cropped thumbnails. */}
-        <img
-          src={`https://i.ytimg.com/vi/${id}/hqdefault.jpg`}
-          alt=""
-          loading="lazy"
-        />
-        <span className={styles.reelPlay} aria-hidden="true">
-          ▶
-        </span>
-      </button>
-      {title && <p className={styles.reelTitle}>{title}</p>}
-    </div>
+      {reels.length > 1 && (
+        <button
+          type="button"
+          className={`${styles.lightboxNav} ${styles.lightboxNext}`}
+          onClick={(e) => {
+            e.stopPropagation();
+            onStep(1);
+          }}
+          aria-label="Next clip"
+        >
+          ›
+        </button>
+      )}
+    </div>,
+    document.body
   );
-};
+}
 
 const ReelGallery = ({ reels, heading }) => {
+  const [active, setActive] = useState(null);
+  const triggers = useRef([]);
+
+  const close = useCallback(() => {
+    setActive((current) => {
+      // Send focus back to the thumbnail that opened the lightbox.
+      if (current !== null) triggers.current[current]?.focus();
+      return null;
+    });
+  }, []);
+
+  const step = useCallback(
+    (delta) => {
+      setActive((current) =>
+        current === null
+          ? current
+          : (current + delta + reels.length) % reels.length
+      );
+    },
+    [reels.length]
+  );
+
   // Nothing to show until video ids are added to REELS in lib/content.js.
   if (!reels || reels.length === 0) return null;
 
   return (
     <div className={styles.reelSection}>
       {heading && <h4 className={styles.description}>{heading}</h4>}
+
       <div className={styles.reelGrid}>
-        {reels.map((reel) => (
-          <Reel key={reel.id} id={reel.id} title={reel.title} />
+        {reels.map((reel, i) => (
+          <div className={styles.reel} key={reel.id}>
+            <button
+              type="button"
+              data-reel-id={reel.id}
+              ref={(el) => (triggers.current[i] = el)}
+              className={styles.reelPoster}
+              onClick={() => setActive(i)}
+              aria-label={`Play: ${reel.title || "Nature clip"}`}
+            >
+              {/* Plain <img>: next/image would need remotePatterns config for
+                  an external host, and these are small cropped thumbnails. */}
+              <img src={THUMB(reel.id)} alt="" loading="lazy" />
+              <span className={styles.reelPlay} aria-hidden="true">
+                ▶
+              </span>
+            </button>
+            {reel.title && <p className={styles.reelTitle}>{reel.title}</p>}
+          </div>
         ))}
       </div>
+
+      {active !== null && (
+        <ReelLightbox
+          reels={reels}
+          index={active}
+          onClose={close}
+          onStep={step}
+        />
+      )}
     </div>
   );
 };

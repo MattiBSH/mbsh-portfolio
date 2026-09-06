@@ -34,14 +34,13 @@
 }
 
 .toolbar{
+  /* No bar: just the two controls, aligned to the top right of the page. */
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
-  width: 50%;
-  padding: 0%;
-  border: #212121, 2px solid;
-  border-radius: 25px;
-  background-color: #232020;
+  gap: 14px;
+  width: 100%;
+  padding: 0;
 }
 
 .toolbarHolder{
@@ -174,18 +173,6 @@
 .profileImage:hover {
   border-radius: 40%;
   transform: scale(1.4);
-}
-
-.buttonStyle {
-  text-decoration: none;
-  background-color: #ffffff;
-  color: rgb(0, 0, 0);
-  border: black 2px solid;
-  border-radius: 22px;
-  padding: 20px 30px;
-  font-size: clamp(0.8rem, 1vw, 1rem);
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.3s ease;
 }
 
 .point{
@@ -336,7 +323,8 @@
 }
 
 .personal {
-  width: 50%;
+  /* Wider than .contactMe on purpose: it has to fit all four reels on one row. */
+  width: 100%;
   border: #ffffff 2px solid;
   border-radius: 25px;
   margin-top: 10%;
@@ -361,6 +349,49 @@
   transform: scale(1.05);
 }
 
+/* Toolbar controls: two identical circles, one for the theme, one for the
+   language. Sized the same so they read as a matched pair. */
+.iconButton {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid #000000;
+  border-radius: 50%;
+  background-color: #ffffff;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.iconButton:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.25);
+}
+
+.iconSun,
+.iconMoon {
+  width: 26px;
+  height: 26px;
+}
+
+/* The flag fills its circle edge to edge; preserveAspectRatio="slice" on the
+   SVG crops the sides rather than letterboxing. */
+.flagIcon {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Light theme shows the sun, dark shows the moon. */
+.iconMoon {
+  display: none;
+}
+
 .footerName {
   /* Looks exactly like the surrounding footer text: the random effect is an
      easter egg, so this must not read as a button. */
@@ -378,9 +409,11 @@
 }
 
 .reelGrid {
+  /* One row on desktop; the 900px block drops it to two-up so the cards do not
+     become postage stamps on a phone. */
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
   margin-top: 12px;
 }
 
@@ -394,6 +427,12 @@
   position: relative;
   display: block;
   width: 100%;
+  /* Must stay 9/16. YouTube returns Shorts thumbnails as a 4:3 image with the
+     vertical clip letterboxed in the middle and blurred filler down each side.
+     The centre 9:16 strip is exactly the clean content, so any shorter ratio
+     exposes the blurred bars. oardefault.jpg would be natively vertical but
+     404s on some videos, so it is not dependable. To make these cards smaller,
+     change max-width on .reelGrid, not this. */
   aspect-ratio: 9 / 16;
   padding: 0;
   overflow: hidden;
@@ -421,16 +460,88 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5rem;
+  font-size: 2rem;
   color: #ffffff;
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
 }
 
-.reelFrame {
-  width: 100%;
+/* Focused reel viewer. Rendered into document.body via a portal, so no
+   ancestor's transform or overflow can trap the fixed positioning. */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(4px);
+}
+
+.lightboxInner {
+  position: relative;
+  /* Fit the 9:16 clip to the viewport height, but never overflow the width. */
+  width: min(100%, calc(88vh * 9 / 16));
   aspect-ratio: 9 / 16;
+  max-height: 88vh;
+}
+
+.lightboxFrame {
+  width: 100%;
+  height: 100%;
   border: 0;
-  border-radius: 16px;
+  border-radius: 12px;
+  display: block;
+}
+
+.lightboxClose {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.lightboxNav {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  line-height: 1;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.lightboxClose:hover,
+.lightboxNav:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.lightboxPrev,
+.lightboxNext {
+  /* Placement is handled by the flex row; these exist so the buttons can be
+     targeted individually if the layout ever needs to change. */
+  align-self: center;
 }
 
 .reelTitle {
@@ -493,6 +604,14 @@
   background-color: #ffffff;
 }
 
+:global(html[data-theme="dark"]) .iconSun {
+  display: none;
+}
+
+:global(html[data-theme="dark"]) .iconMoon {
+  display: block;
+}
+
 :global(html[data-theme="dark"]) .timelineContent {
   box-shadow: none;
 }
@@ -522,15 +641,7 @@
   }
 
   .toolbar {
-    width: 100%;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 8px;
-    padding: 8px;
-  }
-
-  .buttonStyle {
-    padding: 12px 18px;
+    gap: 10px;
   }
 
   .threeBlocks,
@@ -564,6 +675,27 @@
     padding: 8%;
   }
 
+  .reelGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .lightbox {
+    padding: 8px;
+    gap: 4px;
+  }
+
+  .lightboxNav {
+    width: 36px;
+    height: 36px;
+    font-size: 1.5rem;
+  }
+
+  .lightboxInner {
+    width: min(100%, calc(80vh * 9 / 16));
+    max-height: 80vh;
+  }
+
   .projectsDiv {
     padding-left: 6%;
     padding-right: 6%;
@@ -592,13 +724,14 @@
 }
 
 @media (max-width: 480px) {
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
+  .iconButton {
+    width: 40px;
+    height: 40px;
   }
 
-  .buttonStyle {
-    width: 100%;
-    text-align: center;
+  .iconSun,
+  .iconMoon {
+    width: 22px;
+    height: 22px;
   }
 }

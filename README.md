@@ -26,6 +26,7 @@ Then open http://localhost:3000.
 | `npm run dev` | Start the dev server on port 3000 |
 | `npm run build` | Create a production build |
 | `npm start` | Serve the production build |
+| `npm run preview` | Build and serve in one step |
 | `npm test` | Run the Playwright integration tests |
 | `npm run test:ui` | Run the tests in Playwright's interactive UI |
 

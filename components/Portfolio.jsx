@@ -4,6 +4,7 @@ import Link from "next/link";
 import styles from "../styles/theme.module.css";
 import ProjectCarousel from "./ProjectCarousel";
 import ReelGallery from "./ReelGallery";
+import { SunIcon, MoonIcon, FlagDK, FlagGB } from "./Icons";
 import {
   EMAIL,
   LINKEDIN_URL,
@@ -29,11 +30,30 @@ export default function Portfolio({ content, meta, toggleTheme }) {
     <div>
       <div className={styles.toolbarHolder}>
         <div className={styles.toolbar}>
-          <button onClick={handleThemeToggle} className={styles.buttonStyle}>
-            <b>Dark / Light</b>
+          {/* Both icons are always rendered; CSS shows one based on
+              html[data-theme]. Doing it in CSS rather than React state keeps
+              the server and client markup identical, which is what lets the
+              pre-paint theme script work without a hydration mismatch. */}
+          <button
+            type="button"
+            onClick={handleThemeToggle}
+            className={styles.iconButton}
+            aria-label={content.themeAria}
+          >
+            <SunIcon className={styles.iconSun} />
+            <MoonIcon className={styles.iconMoon} />
           </button>
-          <Link href={content.switchHref} className={styles.buttonStyle}>
-            <b>{content.switchLabel}</b>
+
+          <Link
+            href={content.switchHref}
+            className={styles.iconButton}
+            aria-label={content.switchAria}
+          >
+            {content.switchFlag === "gb" ? (
+              <FlagGB className={styles.flagIcon} />
+            ) : (
+              <FlagDK className={styles.flagIcon} />
+            )}
           </Link>
         </div>
       </div>

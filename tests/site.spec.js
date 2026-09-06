@@ -32,7 +32,7 @@ test.describe("page loads", () => {
 
     // lang must also follow a client-side navigation, since <html> is outside
     // the React tree and is never re-rendered.
-    await page.getByRole("link", { name: "English", exact: true }).click();
+    await page.getByRole("link", { name: "Skift til engelsk" }).click();
     await expect(page).toHaveURL(/localhost:3100\/$/);
     await expect.poll(() => page.getAttribute("html", "lang")).toBe("en");
   });
@@ -80,6 +80,49 @@ test.describe("social preview metadata", () => {
   });
 });
 
+test.describe("toolbar icons", () => {
+  test("theme control shows a sun in light and a moon in dark", async ({ page }) => {
+    await page.goto("/");
+    const button = page.getByRole("button", { name: "Toggle dark mode" });
+    const sun = button.locator("svg").first();
+    const moon = button.locator("svg").nth(1);
+
+    await expect(sun).toBeVisible();
+    await expect(moon).toBeHidden();
+
+    await button.click();
+    await expect(sun).toBeHidden();
+    await expect(moon).toBeVisible();
+  });
+
+  test("language control shows the flag of the target language", async ({ page }) => {
+    await page.goto("/");
+    const toDanish = page.getByRole("link", { name: "Switch to Danish" });
+    await expect(toDanish.locator("svg")).toBeVisible();
+
+    await toDanish.click();
+    await expect(page).toHaveURL(/danish_index/);
+    await expect(
+      page.getByRole("link", { name: "Skift til engelsk" }).locator("svg")
+    ).toBeVisible();
+  });
+
+  test("both controls are the same size and circular", async ({ page }) => {
+    await page.goto("/");
+    const theme = await page
+      .getByRole("button", { name: "Toggle dark mode" })
+      .boundingBox();
+    const lang = await page
+      .getByRole("link", { name: "Switch to Danish" })
+      .boundingBox();
+
+    expect(Math.abs(theme.width - lang.width)).toBeLessThan(1);
+    expect(Math.abs(theme.height - lang.height)).toBeLessThan(1);
+    // Circular means square bounds.
+    expect(Math.abs(theme.width - theme.height)).toBeLessThan(1);
+  });
+});
+
 test.describe("theme toggle", () => {
   test("toggling switches the document theme and repaints the page", async ({ page }) => {
     await page.goto("/");
@@ -88,7 +131,7 @@ test.describe("theme toggle", () => {
     const panel = page.locator("main > div").first();
     const lightBg = await panel.evaluate((el) => getComputedStyle(el).backgroundColor);
 
-    await page.getByRole("button", { name: "Dark / Light" }).click();
+    await page.getByRole("button", { name: "Toggle dark mode" }).click();
     expect(await themeOf(page)).toBe("dark");
 
     const darkBg = await panel.evaluate((el) => getComputedStyle(el).backgroundColor);
@@ -97,28 +140,28 @@ test.describe("theme toggle", () => {
 
   test("theme survives navigation to the other language", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: "Dark / Light" }).click();
+    await page.getByRole("button", { name: "Toggle dark mode" }).click();
     expect(await themeOf(page)).toBe("dark");
 
-    await page.getByRole("link", { name: "danish", exact: true }).click();
+    await page.getByRole("link", { name: "Switch to Danish" }).click();
     await expect(page).toHaveURL(/danish_index/);
     expect(await themeOf(page)).toBe("dark");
 
-    await page.getByRole("link", { name: "English", exact: true }).click();
+    await page.getByRole("link", { name: "Skift til engelsk" }).click();
     await expect(page).toHaveURL(/localhost:3100\/$/);
     expect(await themeOf(page)).toBe("dark");
   });
 
   test("theme survives a full reload", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: "Dark / Light" }).click();
+    await page.getByRole("button", { name: "Toggle dark mode" }).click();
     await page.reload();
     expect(await themeOf(page)).toBe("dark");
   });
 
   test("dark theme is applied before first paint, with no light flash", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: "Dark / Light" }).click();
+    await page.getByRole("button", { name: "Toggle dark mode" }).click();
 
     // Record the theme as early as a script can observe the document. If React
     // were applying the theme instead of the inline head script, this would
@@ -162,7 +205,7 @@ test.describe("random effect", () => {
 
     // The regression this guards: inline colours beat the stylesheet, so the
     // toggle must clear them or it silently stops changing text colour.
-    await page.getByRole("button", { name: "Dark / Light" }).click();
+    await page.getByRole("button", { name: "Toggle dark mode" }).click();
     expect(await headline.evaluate((el) => el.style.color)).toBe("");
 
     const after = await headline.evaluate((el) => getComputedStyle(el).color);
@@ -216,6 +259,83 @@ test.describe("reels", () => {
         .poll(() => img.evaluate((el) => el.naturalWidth), { timeout: 15000 })
         .toBeGreaterThan(0);
     }
+  });
+});
+
+test.describe("reel lightbox", () => {
+  const openFirst = async (page) => {
+    await page.goto("/");
+    const first = page.locator("[data-reel-id]").first();
+    await first.scrollIntoViewIfNeeded();
+    await first.click();
+    return page.locator("[data-lightbox]");
+  };
+
+  test("clicking a reel opens a focused player", async ({ page }) => {
+    const box = await openFirst(page);
+    await expect(box).toBeVisible();
+    await expect(box).toHaveAttribute("aria-modal", "true");
+
+    // The player is only created once the lightbox opens.
+    const frame = box.locator("iframe");
+    await expect(frame).toBeVisible();
+    expect(await frame.getAttribute("src")).toContain("youtube-nocookie.com/embed/");
+  });
+
+  test("the page behind is locked from scrolling while open", async ({ page }) => {
+    const box = await openFirst(page);
+    expect(await page.evaluate(() => document.body.style.overflow)).toBe("hidden");
+
+    await page.keyboard.press("Escape");
+    await expect(box).toHaveCount(0);
+    // Scrolling must be restored, not left locked.
+    expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
+  });
+
+  test("closes on Escape, the close button, and the backdrop", async ({ page }) => {
+    let box = await openFirst(page);
+    await page.keyboard.press("Escape");
+    await expect(box).toHaveCount(0);
+
+    box = await openFirst(page);
+    await page.getByRole("button", { name: "Close" }).click();
+    await expect(box).toHaveCount(0);
+
+    box = await openFirst(page);
+    // Click the backdrop itself, not the player.
+    await box.click({ position: { x: 5, y: 5 } });
+    await expect(box).toHaveCount(0);
+  });
+
+  test("clicking the player does not close it", async ({ page }) => {
+    const box = await openFirst(page);
+    await box.locator("iframe").click({ force: true });
+    await expect(box).toBeVisible();
+  });
+
+  test("arrow keys move between reels and wrap around", async ({ page }) => {
+    const box = await openFirst(page);
+    const srcOf = () => box.locator("iframe").getAttribute("src");
+
+    const first = await srcOf();
+    await page.keyboard.press("ArrowRight");
+    await expect.poll(srcOf).not.toBe(first);
+
+    await page.keyboard.press("ArrowLeft");
+    await expect.poll(srcOf).toBe(first);
+
+    // Stepping back from the first reel wraps to the last.
+    await page.keyboard.press("ArrowLeft");
+    await expect.poll(srcOf).not.toBe(first);
+  });
+
+  test("focus returns to the thumbnail after closing", async ({ page }) => {
+    await openFirst(page);
+    await page.keyboard.press("Escape");
+    const focusedId = await page.evaluate(
+      () => document.activeElement?.getAttribute("data-reel-id")
+    );
+    expect(focusedId).toBeTruthy();
   });
 });
 
