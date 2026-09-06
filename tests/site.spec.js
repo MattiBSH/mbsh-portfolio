@@ -213,9 +213,9 @@ test.describe("random effect", () => {
   });
 });
 
-test.describe("personal section", () => {
+test.describe("personal page", () => {
   test("shows the nature-video section and links to the channel", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/personal");
     await expect(page.getByRole("heading", { name: "Outside work" })).toBeVisible();
     await expect(page.getByText("I film Danish nature")).toBeVisible();
 
@@ -231,7 +231,7 @@ test.describe("personal section", () => {
   });
 
   test("the section is translated on the Danish page", async ({ page }) => {
-    await page.goto("/danish_index");
+    await page.goto("/danish_personal");
     await expect(
       page.getByRole("heading", { name: "Uden for arbejdet" })
     ).toBeVisible();
@@ -241,9 +241,70 @@ test.describe("personal section", () => {
   });
 });
 
+test.describe("personal page routing", () => {
+  test("the front page no longer carries the personal section", async ({ page }) => {
+    await page.goto("/");
+    // The whole point of the move: nothing nature-related on the portfolio page.
+    await expect(page.getByRole("heading", { name: "Outside work" })).toHaveCount(0);
+    await expect(page.locator("[data-reel-id]")).toHaveCount(0);
+  });
+
+  test("the teaser under Projects leads to the personal page", async ({ page }) => {
+    await page.goto("/");
+    const teaser = page.getByRole("link", { name: /film Danish nature/ });
+    await expect(teaser).toBeVisible();
+    await teaser.click();
+    await expect(page).toHaveURL(/\/personal$/);
+    await expect(page.getByRole("heading", { name: "Outside work" })).toBeVisible();
+  });
+
+  test("the back link returns to the portfolio", async ({ page }) => {
+    await page.goto("/personal");
+    await page.getByRole("link", { name: /Back to the portfolio/ }).click();
+    await expect(page).toHaveURL(/localhost:3100\/$/);
+    await expect(page.locator("h1")).toContainText("Matti Hansen");
+  });
+
+  test("the language switch stays on the personal page", async ({ page }) => {
+    await page.goto("/personal");
+    await page.getByRole("link", { name: "Switch to Danish" }).click();
+    await expect(page).toHaveURL(/\/danish_personal$/);
+    await expect(page.getByRole("heading", { name: "Uden for arbejdet" })).toBeVisible();
+
+    await page.getByRole("link", { name: "Skift til engelsk" }).click();
+    await expect(page).toHaveURL(/\/personal$/);
+  });
+
+  test("each personal route declares the right document language", async ({ page }) => {
+    await page.goto("/personal");
+    expect(await page.getAttribute("html", "lang")).toBe("en");
+
+    await page.goto("/danish_personal");
+    expect(await page.getAttribute("html", "lang")).toBe("da");
+  });
+
+  test("the personal page has its own social preview copy", async ({ page }) => {
+    await page.goto("/personal");
+    const content = (sel) => page.locator(sel).first().getAttribute("content");
+    // Must differ from the portfolio's, or both share one link preview.
+    expect(await content('meta[name="description"]')).toContain("Nature clips");
+    expect(await content('meta[property="og:url"]')).toContain("/personal");
+  });
+
+  test("the theme survives moving between the two pages", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Toggle dark mode" }).click();
+    await page.getByRole("link", { name: /film Danish nature/ }).click();
+    await expect(page).toHaveURL(/\/personal$/);
+    expect(
+      await page.evaluate(() => document.documentElement.getAttribute("data-theme"))
+    ).toBe("dark");
+  });
+});
+
 test.describe("reels", () => {
   test("any reel thumbnails reference well-formed YouTube ids", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/personal");
     const reels = page.locator("[data-reel-id]");
     const count = await reels.count();
 
@@ -264,7 +325,7 @@ test.describe("reels", () => {
 
 test.describe("reel lightbox", () => {
   const openFirst = async (page) => {
-    await page.goto("/");
+    await page.goto("/personal");
     const first = page.locator("[data-reel-id]").first();
     await first.scrollIntoViewIfNeeded();
     await first.click();
@@ -383,12 +444,112 @@ test.describe("layout", () => {
   });
 });
 
+// react-slick clones slides when infinite is on, and marks inactive ones
+// aria-hidden — which Playwright's role engine skips. So project assertions go
+// through data attributes and textContent, never getByRole.
+//
+// Note the descendant combinator: react-slick does NOT merge props onto
+// .slick-slide, it wraps the element you return in two divs, so data-project-id
+// ends up a grandchild rather than on the slide itself.
+const SLIDE = ".slick-slide:not(.slick-cloned) [data-project-id]";
+
+const projectIds = (page) =>
+  page.$$eval(SLIDE, (els) => els.map((el) => el.dataset.projectId));
+
+const projectCopy = (page) =>
+  page.$$eval(SLIDE, (els) =>
+    Object.fromEntries(
+      els.map((el) => [
+        el.dataset.projectId,
+        {
+          title: el.querySelector("h3").textContent.trim(),
+          description: el.querySelector("p").textContent.trim(),
+          tech: [...el.querySelectorAll("li")].map((li) =>
+            li.textContent.trim()
+          ),
+        },
+      ])
+    )
+  );
+
 test.describe("projects carousel", () => {
   test("shows project cards", async ({ page }) => {
     await page.goto("/");
-    await expect(
-      page.getByRole("heading", { name: "AI GDPR Integration" }).first()
-    ).toBeVisible();
+    const copy = await projectCopy(page);
+    expect(copy["ai-gdpr"].title).toContain("AI GDPR");
+  });
+
+  test("every card has a title, a description and tech tags", async ({ page }) => {
+    await page.goto("/");
+    const copy = await projectCopy(page);
+    const ids = Object.keys(copy);
+    expect(ids.length).toBeGreaterThanOrEqual(6);
+
+    for (const id of ids) {
+      expect(copy[id].title, id).not.toBe("");
+      expect(copy[id].description, id).not.toBe("");
+      expect(copy[id].tech.length, id).toBeGreaterThan(0);
+    }
+  });
+
+  test("project ids are unique", async ({ page }) => {
+    await page.goto("/");
+    const ids = await projectIds(page);
+    // Duplicates would collide as React keys. Titles can repeat; ids must not.
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  test("the current employer is badged differently from earlier roles", async ({ page }) => {
+    await page.goto("/");
+    const badgeBg = (sel) =>
+      page
+        .locator(sel)
+        .first()
+        .locator("span")
+        .first()
+        .evaluate((el) => getComputedStyle(el).backgroundColor);
+
+    expect(await badgeBg('[data-current="true"]')).not.toBe(
+      await badgeBg('[data-current="false"]')
+    );
+  });
+
+  test("project copy is translated on the Danish page", async ({ page }) => {
+    await page.goto("/danish_index");
+    const copy = await projectCopy(page);
+    expect(copy["nemsoeg"].title).toBe("Nemsøg");
+    expect(copy["nemsoeg"].description).toContain("matrikler");
+  });
+
+  test("both languages show the same projects, none fell back to English", async ({ page }) => {
+    await page.goto("/");
+    const en = await projectCopy(page);
+    await page.goto("/danish_index");
+    const da = await projectCopy(page);
+
+    // One array feeds both pages, so a difference here means the component
+    // dropped something rather than the data being out of step.
+    expect(Object.keys(da)).toEqual(Object.keys(en));
+
+    for (const id of Object.keys(en)) {
+      // Titles may legitimately match; descriptions must not. An entry added
+      // with only an `en` block renders English on the Danish page, and this
+      // is what catches it.
+      expect(da[id].description, `${id} has no Danish description`).not.toBe(
+        en[id].description
+      );
+      // Tech is language-neutral by construction — assert it, so a refactor
+      // that duplicates it per language is caught immediately.
+      expect(da[id].tech, id).toEqual(en[id].tech);
+    }
+  });
+
+  test("the dot row does not grow one dot per project", async ({ page }, testInfo) => {
+    await page.goto("/");
+    const dots = await page.locator(".slick-dots li").count();
+    const projects = (await projectIds(page)).length;
+    const perPage = testInfo.project.name === "mobile" ? 1 : 3;
+    expect(dots).toBe(Math.ceil(projects / perPage));
   });
 
   test("adapts the number of visible slides to the viewport", async ({ page }, testInfo) => {

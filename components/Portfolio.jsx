@@ -1,78 +1,23 @@
-import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import styles from "../styles/theme.module.css";
 import ProjectCarousel from "./ProjectCarousel";
-import ReelGallery from "./ReelGallery";
-import { SunIcon, MoonIcon, FlagDK, FlagGB } from "./Icons";
-import {
-  EMAIL,
-  LINKEDIN_URL,
-  YOUTUBE_URL,
-  YOUTUBE_HANDLE,
-  REELS,
-} from "../lib/content";
-import { OG_IMAGE, SITE_URL } from "../lib/site";
-import { runRandomEffect, clearRandomColors } from "../lib/effects";
-
+import { SiteHead, Toolbar, SiteFooter } from "./SiteChrome";
+import { EMAIL, LINKEDIN_URL, PROJECTS } from "../lib/content";
 // The whole page, for either language. Copy comes from lib/content.js and the
 // <head> metadata from lib/site.js, so the two page files under pages/ are just
 // thin wrappers that pick a language.
 export default function Portfolio({ content, meta, toggleTheme }) {
-  // Clearing first is what keeps the toggle working after "Random effect" has
-  // painted inline colours over everything.
-  function handleThemeToggle() {
-    clearRandomColors();
-    toggleTheme();
-  }
-
   return (
     <div>
-      <div className={styles.toolbarHolder}>
-        <div className={styles.toolbar}>
-          {/* Both icons are always rendered; CSS shows one based on
-              html[data-theme]. Doing it in CSS rather than React state keeps
-              the server and client markup identical, which is what lets the
-              pre-paint theme script work without a hydration mismatch. */}
-          <button
-            type="button"
-            onClick={handleThemeToggle}
-            className={styles.iconButton}
-            aria-label={content.themeAria}
-          >
-            <SunIcon className={styles.iconSun} />
-            <MoonIcon className={styles.iconMoon} />
-          </button>
-
-          <Link
-            href={content.switchHref}
-            className={styles.iconButton}
-            aria-label={content.switchAria}
-          >
-            {content.switchFlag === "gb" ? (
-              <FlagGB className={styles.flagIcon} />
-            ) : (
-              <FlagDK className={styles.flagIcon} />
-            )}
-          </Link>
-        </div>
-      </div>
+      <Toolbar
+        content={content}
+        switchHref={content.switchHref}
+        toggleTheme={toggleTheme}
+      />
 
       <div className={styles.container}>
-        <Head>
-          <title>{meta.title}</title>
-          <meta name="description" content={meta.description} />
-          <meta property="og:type" content="website" />
-          <meta property="og:url" content={SITE_URL} />
-          <meta property="og:title" content={meta.ogTitle} />
-          <meta property="og:description" content={meta.description} />
-          <meta property="og:image" content={OG_IMAGE} />
-          <meta name="twitter:card" content="summary_large_image" />
-          <meta name="twitter:title" content={meta.ogTitle} />
-          <meta name="twitter:description" content={meta.description} />
-          <meta name="twitter:image" content={OG_IMAGE} />
-          <link rel="icon" href="/favicon.ico" />
-        </Head>
+        <SiteHead meta={meta} path={content.homeHref} />
 
         <main>
           <div className={styles.mainContent}>
@@ -133,33 +78,6 @@ export default function Portfolio({ content, meta, toggleTheme }) {
             </div>
 
             <div className={styles.center}>
-              <div className={styles.personal}>
-                <h2 className={styles.timelineHeader}>
-                  {content.personal.title}
-                </h2>
-                <br />
-                <h4 className={styles.description}>
-                  🌿 {content.personal.lead}
-                </h4>
-                <br />
-                <p className={styles.description2}>{content.personal.body}</p>
-                <br />
-                <a
-                  className={styles.channelLink}
-                  href={YOUTUBE_URL}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  ▶ {content.personal.linkText} ({YOUTUBE_HANDLE})
-                </a>
-                <ReelGallery
-                  reels={REELS}
-                  heading={content.personal.reelsHeading}
-                />
-              </div>
-            </div>
-
-            <div className={styles.center}>
               <div className={styles.contactMe}>
                 <h2 className={styles.timelineHeader}>{content.contactTitle}</h2>
                 <br />
@@ -182,25 +100,29 @@ export default function Portfolio({ content, meta, toggleTheme }) {
 
       <div className={styles.projectsDiv}>
         <h2 className={styles.headlineWhite}>{content.projectsTitle}</h2>
-        <ProjectCarousel projects={content.projects} />
+        {/* PROJECTS is language-neutral; only the prose inside each entry and
+            the small labels come from the language block. */}
+        <ProjectCarousel
+          projects={PROJECTS}
+          lang={content.lang}
+          labels={content.projectLabels}
+        />
       </div>
 
       <div className={styles.edgeSpace}></div>
 
-      <footer>
-        <h5>
-          {/* Easter egg: the random effect has no visible button any more,
-              it is triggered by clicking the name here. A real <button> keeps
-              it reachable by keyboard. */}
-          <button
-            type="button"
-            className={styles.footerName}
-            onClick={runRandomEffect}
-          >
-            {content.footer}
-          </button>
-        </h5>
-      </footer>
+      {/* The only route into the personal side of the site. Deliberately quiet
+          and after the projects, so it does not interrupt the professional
+          narrative above. */}
+      <div className={styles.personalTeaser}>
+        <Link className={styles.channelLink} href={content.personalHref}>
+          🌿 {content.personal.teaser}
+        </Link>
+      </div>
+
+      <div className={styles.edgeSpace}></div>
+
+      <SiteFooter content={content} />
     </div>
   );
 }

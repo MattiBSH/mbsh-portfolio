@@ -322,15 +322,38 @@
   padding: 2%;
 }
 
-.personal {
-  /* Wider than .contactMe on purpose: it has to fit all four reels on one row. */
+/* The personal content lives on its own route now (/personal), so this is a
+   page body rather than a card wedged between two sections. No border or tint:
+   it already has .mainContent's panel around it. */
+.personalPage {
   width: 100%;
-  border: #ffffff 2px solid;
-  border-radius: 25px;
-  margin-top: 10%;
-  padding: 4%;
-  background-color: rgba(0, 118, 165, 0.192);
+  padding: 0 4% 6%;
   text-align: center;
+}
+
+.personalPage .channelLink {
+  margin-top: 1.5rem;
+}
+
+/* The one route into the personal page, sitting under the projects carousel. */
+.personalTeaser {
+  display: flex;
+  justify-content: center;
+  padding: 0 6%;
+}
+
+.backLink {
+  display: inline-block;
+  margin-top: 2.5rem;
+  color: #c6c6c6;
+  text-decoration: none;
+  font-size: clamp(0.85rem, 0.9vw, 1rem);
+  border-bottom: 1px solid rgba(198, 198, 198, 0.4);
+}
+
+.backLink:hover {
+  color: #ffffff;
+  border-bottom-color: #ffffff;
 }
 
 .channelLink {
@@ -550,20 +573,174 @@
   font-size: clamp(0.75rem, 0.85vw, 0.9rem);
 }
 
+/* ---------------------------------------------------------------------------
+   Project cards.
+
+   This section sits outside <main> on the fixed dark page background, so every
+   colour here is a literal and none of it belongs in the dark-theme block
+   below. Note that global.css colours only h1-h4 and p — any span or li added
+   here needs an explicit colour or it renders near-black on near-black.
+
+   Equal heights: slick.css floats .slick-slide with height:100%, which against
+   an auto-height track resolves to "as tall as my own text" — that is what made
+   the cards ragged. Making the track a flex row and each slide a stretched flex
+   item equalises them. Do not reach for adaptiveHeight, which does the reverse.
+   --------------------------------------------------------------------------- */
+
+.projectsDiv :global(.slick-track) {
+  display: flex;
+  align-items: stretch;
+}
+
+/* The track's clearfix pseudo-elements would otherwise become flex items. */
+.projectsDiv :global(.slick-track)::before,
+.projectsDiv :global(.slick-track)::after {
+  display: none;
+}
+
+.projectsDiv :global(.slick-slide) {
+  height: auto; /* undo slick's height: 100% */
+  float: none; /* a flex item now, not a float */
+  display: flex; /* lets .projectCard stretch to the full slide height */
+  flex-shrink: 0; /* react-slick writes an exact inline width; never squeeze it */
+}
+
+/* react-slick wraps the element returned from the map in two more divs before
+   the card, so the stretch has to be handed down through both or the card only
+   grows as tall as its own text. */
+.projectsDiv :global(.slick-slide) > div {
+  display: flex;
+  width: 100%;
+}
+
+/* The div react-slick puts around the card carries an inline
+   "width:100%;display:inline-block", which no stylesheet rule can override.
+   Rather than fight it with !important, note that it is already stretched to
+   the full slide height as a flex item — so the card just takes height:100%
+   from it. */
+
 .projectCard {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
   padding: 20px;
   margin: 0 10px;
+  /* Same chrome vocabulary as .personal, but hard-coded — this block never
+     switches theme. */
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  border-radius: 20px;
+  background-color: rgba(0, 118, 165, 0.192);
+  transition: transform 0.3s ease, border-color 0.3s ease;
+}
+
+.projectCard:hover {
+  transform: translateY(-4px);
+  border-color: #ffffff;
+}
+
+.projectMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 0.6rem;
+}
+
+.projectCompany {
+  font-size: clamp(0.68rem, 0.75vw, 0.8rem);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #c6c6c6;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 999px;
+  padding: 2px 10px;
+}
+
+/* Current employer: filled rather than outlined, so it reads at a glance
+   against the earlier roles without needing a word that would need translating. */
+.projectCompanyCurrent {
+  color: #0b1b22;
+  background-color: #7fd4ff;
+  border-color: #7fd4ff;
+}
+
+.projectPeriod {
+  font-size: clamp(0.68rem, 0.75vw, 0.8rem);
+  color: #9a9a9a;
 }
 
 .projectTitle {
   margin: 0 0 0.5rem;
   font-size: clamp(1.05rem, 1.4vw, 1.35rem);
+  /* A long unbroken system name must wrap, not widen the card. */
+  overflow-wrap: anywhere;
 }
 
 .projectDescription {
   margin: 0;
   font-size: clamp(0.85rem, 0.9vw, 1rem);
   line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+/* margin-top: auto pins the tag row to the bottom, so cards with a short and a
+   long description still line their tags up. */
+.projectTech {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: auto 0 0;
+  padding: 0.9rem 0 0;
+}
+
+.projectTag {
+  font-size: clamp(0.68rem, 0.75vw, 0.8rem);
+  line-height: 1.2;
+  color: #eaf6ff;
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 6px;
+  padding: 3px 8px;
+  white-space: nowrap;
+}
+
+/* Dots. slick-theme paints them black at 0.25 opacity — invisible on #232020 —
+   and pins the row absolutely at bottom:-25px, so a wrapped second row would
+   overlap the footer. Put them in normal flow and make them white. */
+.projectsDiv :global(.slick-dotted.slick-slider) {
+  margin-bottom: 0;
+}
+
+.projectsDiv :global(.slick-dots) {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px;
+  margin-top: 18px;
+}
+
+.projectsDiv :global(.slick-dots li),
+.projectsDiv :global(.slick-dots li button) {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  padding: 0;
+}
+
+.projectsDiv :global(.slick-dots li button)::before {
+  width: 16px;
+  height: 16px;
+  line-height: 16px;
+  font-size: 8px;
+  color: #ffffff;
+  opacity: 0.35;
+}
+
+.projectsDiv :global(.slick-dots li.slick-active button)::before {
+  color: #ffffff;
+  opacity: 1;
 }
 
 /* ---------------------------------------------------------------------------
@@ -595,8 +772,7 @@
 }
 
 :global(html[data-theme="dark"]) .threePointBreakBox,
-:global(html[data-theme="dark"]) .contactMe,
-:global(html[data-theme="dark"]) .personal {
+:global(html[data-theme="dark"]) .contactMe {
   background: #2d2d2d;
 }
 
@@ -669,10 +845,13 @@
     padding-top: 12%;
   }
 
-  .contactMe,
-  .personal {
+  .contactMe {
     width: 100%;
     padding: 8%;
+  }
+
+  .personalPage {
+    padding: 0 2% 8%;
   }
 
   .reelGrid {
@@ -699,6 +878,15 @@
   .projectsDiv {
     padding-left: 6%;
     padding-right: 6%;
+  }
+
+  .projectCard {
+    padding: 16px;
+    margin: 0 6px;
+  }
+
+  .projectsDiv :global(.slick-dots) {
+    margin-top: 14px;
   }
 
   /* The timeline alternates left/right around a centre line on desktop.

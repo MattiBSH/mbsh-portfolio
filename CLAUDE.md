@@ -41,7 +41,9 @@ verification story.
 
 ```
 components/
-  Portfolio.jsx      The entire page, rendered for whichever language it is given
+  Portfolio.jsx      The portfolio page, rendered for whichever language it is given
+  PersonalPage.jsx   The /personal route: nature reels, kept off the front page
+  SiteChrome.jsx     SiteHead / Toolbar / SiteFooter, shared by both page types
   ProjectCarousel.jsx  react-slick wrapper for the projects section
   ReelGallery.jsx    Shorts grid plus the focused lightbox viewer
   Icons.jsx          Inline SVG sun, moon, and the two flags
@@ -54,8 +56,10 @@ lib/
 pages/
   _app.js            Passes toggleTheme down, keeps <html lang> in sync
   _document.js       Inlines the pre-paint theme script into <head>
-  index.js           English route "/" — a thin wrapper over Portfolio
-  danish_index.jsx   Danish route "/danish_index" — same wrapper, Danish content
+  index.js           English "/" — a thin wrapper over Portfolio
+  danish_index.jsx   Danish "/danish_index" — same wrapper, Danish content
+  personal.jsx       English "/personal" — wrapper over PersonalPage
+  danish_personal.jsx  Danish "/danish_personal"
 tests/
   site.spec.js       Playwright integration suite, run on desktop + mobile
 styles/
@@ -105,10 +109,16 @@ flex rows stack and the timeline collapses from its alternating left/right
 layout to a single column with the line down the left edge. The carousel drops
 to 2 slides at 1024px and 1 slide at 640px via react-slick's `responsive` array.
 
-**Projects** are a hardcoded array literal inside each page component, passed to
-`<ProjectCarousel projects={projects} />`. There is no CMS, no data fetching, no
-API routes, and no `getStaticProps`/`getServerSideProps` anywhere — the site is
-fully static content in JSX.
+**Projects** come from the single `PROJECTS` array in `lib/content.js`. It is
+language-neutral: `id`, `company`, `from`/`to` and `tech` sit at the top level and
+so cannot differ between the two pages, while `en` and `da` nest only the prose.
+This replaced two parallel arrays paired by array position alone, where adding a
+project to one language and not the other went unnoticed — a parity test now
+guards it. `COMPANIES` in the same file maps `company` to a display name and the
+`current` flag that badges today's employer differently.
+
+There is still no CMS, no data fetching, no API routes, and no
+`getStaticProps`/`getServerSideProps` anywhere — the site is fully static.
 
 ## Testing
 
@@ -148,17 +158,71 @@ absolute URLs, and a mismatch means link previews render with no image. The test
 suite asserts the exact value, so changing the domain means changing it in both
 `lib/site.js` and `tests/site.spec.js`.
 
-## Personal section
+## Project content and confidentiality
 
-Between Education and Contact there is an "Outside work" box linking to the
-YouTube channel `@TheRealDanishNature`, where Matti posts nature videos filmed
-in Denmark, plus a grid of four Shorts.
+Several entries summarise work tracked in Dafolo's internal Jira. Descriptions
+are written fresh, never pasted from ticket summaries, and the rule is:
 
-Copy lives under `personal` in each language in `lib/content.js`. The videos
-themselves are in the language-neutral `REELS` export in the same file — the
-clips are identical in both languages, only `reelsHeading` is translated. Add
-or remove videos by editing that array; the gallery renders nothing when it is
-empty.
+- **Never on the page**: ticket keys, Jira URLs, internal release numbers, or the
+  name of any municipality that piloted a feature. The export this came from
+  named at least two as pilot customers.
+- **Fine**: SBSYS, SBSIP, Datafordeleren, DAWA, Dataforsyningen, CVR, BFE,
+  matrikel/ejerlav — publicly documented Danish public-sector systems, and what
+  makes the work legible to a Danish employer.
+
+Before deploying a change to project copy, grep the built output:
+`grep -riE "thisted|gladsaxe|netic|SBSIP-[0-9]|atlassian\.net" .next/server/pages/*.html`
+must return nothing.
+
+None of the projects are publicly reachable — they are internal municipal
+systems, and the Fortis app has since been pulled from the App Store. Do not add
+"view project" links; there is nothing to point at.
+
+## Project cards and react-slick
+
+Two things about this carousel are load-bearing and easy to break:
+
+**react-slick does not merge props onto `.slick-slide`.** It wraps the element you
+return from the map in two further divs, so `data-project-id` lands on a
+grandchild. Test selectors must use a descendant combinator
+(`.slick-slide:not(.slick-cloned) [data-project-id]`), and `getByRole` does not
+work for carousel content at all — inactive slides are `aria-hidden`, which
+Playwright's role engine skips.
+
+**Equal card heights come from a chain, not one rule.** `.slick-track` is a flex
+row, `.slick-slide` is `height:auto; display:flex`, react-slick's own wrapper div
+gets `display:flex`, and the card takes `height:100%`. That last step is
+`height:100%` rather than `flex:1` because react-slick writes an inline
+`display:inline-block` on the div above the card, which no stylesheet rule can
+override — the div is already stretched, so the card just inherits its height.
+Do not use `adaptiveHeight`.
+
+`slidesToScroll` must equal `slidesToShow` at every breakpoint, repeated inside
+each `responsive` entry. react-slick renders `ceil(slideCount / slidesToScroll)`
+dots, so leaving it at 1 gives one dot per project.
+
+## The personal page
+
+The nature-video content lives on its own route — `/personal` and
+`/danish_personal` — rather than on the front page, so it does not interrupt the
+professional narrative. The only way in is a quiet link under the Projects
+carousel (`content.personal.teaser`); there is deliberately no toolbar entry.
+
+Copy is under `personal` in each language in `lib/content.js`; the videos are in
+the language-neutral `REELS` export, with only `reelsHeading` translated. The
+page has its own `META_PERSONAL` in `lib/site.js` — sharing the portfolio's
+metadata would give both routes an identical link preview.
+
+**Four routes now exist, and two of them are Danish.** `langForPath` in
+`lib/theme.js` matches against `DANISH_PATHS`, and the pre-paint script in the
+same file has to agree with it — they are separate implementations of one rule,
+so change both together. The language switch uses `switchPersonalHref` on the
+personal page so it stays on the same kind of page rather than dropping the
+visitor back on the Danish front page.
+
+`SiteChrome.jsx` holds the `<head>` tags, toolbar and footer. Both page types
+use it — without that, the two would drift apart exactly the way the two
+language pages used to.
 
 **Reels are click-to-play, and must stay that way.** A YouTube iframe pulls
 roughly a megabyte before anyone presses play, so four of them would dwarf the
@@ -166,72 +230,25 @@ rest of the page. The grid renders lazy-loaded thumbnails from `i.ytimg.com`;
 exactly one real player exists at a time, created inside the lightbox via
 `youtube-nocookie.com`. Do not replace this with plain iframes.
 
-Clicking a thumbnail opens a focused viewer. It is rendered with
-`createPortal` into `document.body` — deliberately, so that no ancestor's
-`transform`, `filter` or `overflow` can trap its `position: fixed`. The
-`.reelPoster:hover` transform sits close enough in the tree to make that a real
-risk if it were rendered inline.
+Clicking a thumbnail opens a focused viewer, rendered with `createPortal` into
+`document.body` — deliberately, so no ancestor's `transform`, `filter` or
+`overflow` can trap its `position: fixed`. It closes on Escape, the close
+button, and backdrop clicks (the player itself stops propagation); arrow keys
+step between clips and wrap. It locks `document.body.style.overflow` while open
+and restores the previous value — the tests assert the restore, because leaving
+the page unscrollable is the obvious way to break this. Focus moves to the close
+button on open and returns to the originating thumbnail on close.
 
-The viewer closes on Escape, the close button, and backdrop clicks (the player
-itself stops propagation so clicking the video does not dismiss it); arrow keys
-step between clips and wrap around. It locks `document.body.style.overflow`
-while open and restores the previous value on close — the tests assert the
-restore, because leaving the page unscrollable is the obvious way to break this.
-Focus moves to the close button on open and returns to the originating
-thumbnail on close. True fullscreen is YouTube's own control inside the player,
-which is why the iframe keeps `allowFullScreen`.
+Copy is deliberately general about what the videos contain — the channel sits
+behind a consent redirect that cannot be read programmatically, so nothing about
+upload frequency or subscriber counts should be written into the page unless
+Matti supplies it.
 
-**Reel cards must stay 9:16, and that is not a style choice.** YouTube serves
-Shorts thumbnails (`hqdefault.jpg`) as a 4:3 image with the vertical clip
-letterboxed in the centre and blurred stretched filler down each side. The
-centre 9:16 strip is exactly the clean content, so any shorter card ratio
-exposes those blurred bars. `oardefault.jpg` is natively vertical but returns
-404 for some videos, so it cannot be relied on. **To resize the cards, change the column
-count on `.reelGrid` or the width of `.personal` — never the `aspect-ratio` on
-`.reelPoster`.** They currently run four-up on one row at 195x346, dropping to
-two-up at 125x222 below 900px. `.personal` is deliberately 100% wide, unlike
-`.contactMe` at 50%, because four cards do not fit on a half-width row.
-
-The copy is deliberately general about what the videos contain — the channel
-sits behind a consent redirect that cannot be read programmatically, so nothing
-about upload frequency or subscriber counts should be written into the page
-unless Matti supplies it.
-
-Two testing gotchas this area introduced:
-
-- The channel link's accessible name contains "@TheRealDanishNature", and
-  Playwright matches accessible names as case-insensitive **substrings** by
-  default. That made `getByRole("link", { name: "danish" })` — the language
-  switch — ambiguous, so those locators pass `exact: true`.
-- Reel thumbnails are `loading="lazy"` and sit below the fold, so a test must
-  `scrollIntoViewIfNeeded()` and poll before asserting `naturalWidth`.
-
-## Toolbar icons
-
-There is no navigation bar. The two controls — theme and language — are matched
-46px circles sitting at the top right of the page, directly on the background
-above the content panel (40px below 480px wide). `.toolbar` is only a flex row
-for positioning; it has no background, border or width of its own, and giving it
-any would put the old pill bar back. No text labels, so both carry `aria-label`s
-from `themeAria` / `switchAria` in `lib/content.js`.
-
-**The sun/moon swap is done in CSS, not React.** Both icons are always in the
-markup and `html[data-theme="dark"]` decides which one displays. This is
-deliberate: the component has no idea what the current theme is, because the
-theme lives on the DOM rather than in React state, and keeping the markup
-identical on server and client is exactly what lets the pre-paint script work
-without a hydration mismatch. Do not "fix" this by lifting the theme into state.
-
-The flag shown is the flag of the language you would switch **to** — Dannebrog
-on the English page, Union Jack on the Danish one, chosen by `switchFlag`.
-
-Icons are inline SVG in `Icons.jsx` rather than emoji, because flag emoji
-(🇩🇰 🇬🇧) do not render as flags on Windows — it shows "DK" / "GB" letters
-instead. The Union Jack's `clipPath` is what counterchanges the red diagonals
-so they fall on the correct side of each white one; removing it produces a flag
-that looks subtly wrong. Flags fill their circle via
-`preserveAspectRatio="xMidYMid slice"`, which crops the sides instead of
-letterboxing.
+One testing gotcha: the channel link's accessible name contains
+"@TheRealDanishNature", and Playwright matches accessible names as
+case-insensitive **substrings** by default. That made
+`getByRole("link", { name: "danish" })` ambiguous, so language-switch locators
+pass `exact: true`.
 
 ## The random effect easter egg
 
@@ -241,13 +258,6 @@ footer ("Made by Matti Hansen" / "Lavet af Matti Hansen"), which is a real
 text — keeping it a button means keyboard users can reach it. A test asserts no
 button named "Random effect" exists anywhere, so re-adding one to the toolbar
 will fail the suite.
-
-## Project content
-
-None of the six listed projects are publicly reachable — they are internal
-municipal systems, and the Fortis app has since been pulled from the App Store.
-Do not add "view project" links or try to source screenshots; there is nothing
-to point at. The descriptions are the deliverable.
 
 ## Conventions
 

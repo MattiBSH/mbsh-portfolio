@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --check tests/site.spec.js)",
+      "Bash(npm run *)",
+      "Bash(npx playwright *)",
+      "Bash(node --check components/Portfolio.jsx)",
+      "Bash(npx --yes esbuild components/Portfolio.jsx --loader=jsx --outfile=/dev/null)"
+    ]
+  }
+}
