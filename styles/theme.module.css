@@ -1,0 +1,526 @@
+.html{
+  background-color: #232020;
+}
+
+.container {
+  min-height: 100vh;
+  padding-left: 10%;
+  padding-right: 10%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: #2d2d2d;
+}
+
+.mainContent{
+  padding-left: 10%;
+  padding-right: 10%;
+  background-color: #f0faff;
+  border-radius: 25px;
+}
+
+.spaceAround{
+  padding: 10%;
+}
+
+.spaceAtStart{
+  padding-top: 10%;
+}
+
+.edgeSpace{
+  padding-top: 5%;
+  background-color: #2d2d2d;
+}
+
+.toolbar{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 50%;
+  padding: 0%;
+  border: #212121, 2px solid;
+  border-radius: 25px;
+  background-color: #232020;
+}
+
+.toolbarHolder{
+  background-color: #2d2d2d;
+  padding-left: 10%;
+  padding-right: 10%;
+  padding-bottom: 1%;
+  padding-top: 1%;
+}
+
+.threeBlocks {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
+}
+
+.description{
+  color: black;
+  margin-top: 0%;
+  font-size: clamp(0.95rem, 1vw, 1.15rem);
+
+}
+
+.description2{
+  padding-left: 8%;
+  padding-right: 8%;
+  color: black;
+  font-weight: 200;
+  margin-top: 0%;
+  font-size: clamp(0.85rem, 0.8vw, 1rem);
+
+}
+
+.third {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 1rem;
+}
+
+.headline {
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: black;
+  font-size: clamp(2rem, 3vw, 3.5rem);
+
+}
+
+.timelineHeader{
+  font-size: clamp(1.1rem, 2vw, 1.6rem);
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: black;
+}
+
+.timelineTimePeriod{
+  font-size: clamp(0.9rem, 1.6vw, 1.2rem);
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: black;
+}
+
+.basicHeadline{
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: black;
+}
+
+.threePointBreakBox{
+  margin-top: 10%;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  width: 100%;
+  flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
+  border: #ffffff 2px solid;
+  border-radius: 25px;
+  background: rgba(0, 118, 165, 0.192);
+
+}
+
+.center{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.contactMe{
+  width: 50%;
+  flex-wrap: wrap; /* This ensures the blocks wrap on smaller screens */
+  border: #ffffff 2px solid;
+  border-radius: 25px;
+  margin-top: 10%;
+  padding: 4%;
+  background-color: rgba(0, 118, 165, 0.192);
+  margin-bottom: 10%;
+}
+
+.tintedShadow {
+  border-radius: 100%;
+  box-shadow: 
+  0 -10px 20px -5px rgba(98, 208, 255, 0.653), /* Blue shadow at the top */
+  0 0 10px 5px rgba(165, 111, 69, 0.553); /* Red-tinted shadow *//* Red tinted shadow */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: Arial, sans-serif;
+}
+
+.profileImage {
+  transition: transform 0.8s ease-in-out;
+  border-radius: 40%;
+}
+
+.projectsDiv{
+  padding-left: 20%;
+  padding-right: 20%;
+}
+
+.profileImage:hover {
+  border-radius: 40%;
+  transform: scale(1.4);
+}
+
+.buttonStyle {
+  text-decoration: none;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  border: black 2px solid;
+  border-radius: 22px;
+  padding: 20px 30px;
+  font-size: clamp(0.8rem, 1vw, 1rem);
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.point{
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1%;
+  color: black;
+  font-size: clamp(1.3rem, 2vw, 1.9rem);
+}
+
+.line {
+  width: 100%;
+  height: 3px; 
+  background-color: #000000; 
+  margin: 20px 0; 
+}
+
+.info{
+  text-align: center;
+  font-size: clamp(1rem, 1.2vw, 1.4rem);
+  font-weight: 300;
+  color: rgb(0, 0, 0);
+
+}
+
+.title {
+  font-size: 1.0rem;
+  margin: 0;
+  color: rgb(0, 0, 0);
+
+}
+
+.title a {
+  color: #0070f3;
+  text-decoration: none;
+}
+
+.title a:hover,
+.title a:focus,
+.title a:active {
+  text-decoration: underline;
+}
+
+.education{
+  margin-top: 10%;
+  text-align: center;
+}
+
+/* Container for the timeline */
+.timeline {
+  padding-top: 2%;
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Vertical line in the middle of the timeline */
+.timeline::after {
+  content: '';
+  position: absolute;
+  width: 6px;
+  background-color: #333;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  margin-left: -3px;
+}
+
+
+
+/* Styling for each timeline item */
+.timelineItem {
+  padding: 10px 0px;
+  position: relative;
+  background-color: inherit;
+  width: 50%;
+}
+
+/* Circle indicator for each timeline item */
+.timelineItem:nth-child(odd):after {
+  content: '';
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  right: -17px;
+  background-color: white;
+  border: 4px solid #333;
+  top: 20px;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Circle indicator for each timeline item */
+.timelineItem:nth-child(even):after {
+  content: '';
+  position: absolute;
+  width: 25px;
+  height: 25px;
+  right: 95%;
+  background-color: white;
+  border: 4px solid #333;
+  top: 20px;
+  border-radius: 50%;
+  z-index: 1;
+}
+
+/* Position odd timeline items to the left */
+.timelineItem:nth-child(odd) {
+  left: 0;
+}
+
+/* Position even timeline items to the right */
+.timelineItem:nth-child(even) {
+  left: 50%;
+}
+
+/* Styling for the content inside each timeline item */
+.timelineContent {
+  padding: 20px;
+  background-color: white;
+  position: relative;
+  border-radius: 6px;
+  box-shadow: #000000 0px 0px 1px 0.1px;
+}
+
+/* Styling for the title inside each timeline item */
+.timelineContent h2 {
+  margin-top: 0;
+  color: #333;
+}
+
+/* Styling for the description inside each timeline item */
+.timelineContent p {
+  margin: 0;
+  color: #212121;
+}
+
+.headlineWhite{
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+  letter-spacing: -0.05rem;
+  line-height: 1.1; /* Adjust line height for readability */
+  margin: 0;
+  color: white;
+  text-align: center;
+  padding: 2%;
+}
+
+.personal {
+  width: 50%;
+  border: #ffffff 2px solid;
+  border-radius: 25px;
+  margin-top: 10%;
+  padding: 4%;
+  background-color: rgba(0, 118, 165, 0.192);
+  text-align: center;
+}
+
+.channelLink {
+  display: inline-block;
+  text-decoration: none;
+  background-color: #ffffff;
+  color: rgb(0, 0, 0);
+  border: black 2px solid;
+  border-radius: 22px;
+  padding: 12px 24px;
+  font-size: clamp(0.8rem, 1vw, 1rem);
+  transition: background-color 0.3s ease, transform 0.3s ease;
+}
+
+.channelLink:hover {
+  transform: scale(1.05);
+}
+
+.projectCard {
+  padding: 20px;
+  margin: 0 10px;
+}
+
+.projectTitle {
+  margin: 0 0 0.5rem;
+  font-size: clamp(1.05rem, 1.4vw, 1.35rem);
+}
+
+.projectDescription {
+  margin: 0;
+  font-size: clamp(0.85rem, 0.9vw, 1rem);
+  line-height: 1.45;
+}
+
+/* ---------------------------------------------------------------------------
+   Dark theme.
+
+   Only the declarations that genuinely differ from the light base live here;
+   everything structural is shared above. This replaces the old approach of two
+   near-identical stylesheets swapped at runtime, which meant every new class
+   had to be added twice or it silently lost its styling in one theme.
+
+   The data-theme attribute is set on <html> before first paint by the inline
+   script in pages/_document.js, and flipped by toggleTheme in lib/theme.js.
+   --------------------------------------------------------------------------- */
+
+:global(html[data-theme="dark"]) .mainContent {
+  background-color: #232020;
+}
+
+:global(html[data-theme="dark"]) .description,
+:global(html[data-theme="dark"]) .description2,
+:global(html[data-theme="dark"]) .headline,
+:global(html[data-theme="dark"]) .basicHeadline,
+:global(html[data-theme="dark"]) .timelineHeader,
+:global(html[data-theme="dark"]) .timelineTimePeriod,
+:global(html[data-theme="dark"]) .point,
+:global(html[data-theme="dark"]) .info,
+:global(html[data-theme="dark"]) .title {
+  color: #ffffff;
+}
+
+:global(html[data-theme="dark"]) .threePointBreakBox,
+:global(html[data-theme="dark"]) .contactMe,
+:global(html[data-theme="dark"]) .personal {
+  background: #2d2d2d;
+}
+
+:global(html[data-theme="dark"]) .line {
+  background-color: #ffffff;
+}
+
+:global(html[data-theme="dark"]) .timelineContent {
+  box-shadow: none;
+}
+
+/* ---------------------------------------------------------------------------
+   Responsive. The layout is built from percentage padding and three-column
+   flex rows, both of which collapse badly under ~900px, so below that the
+   columns stack and the outer padding shrinks.
+   --------------------------------------------------------------------------- */
+
+@media (max-width: 900px) {
+  .container {
+    padding-left: 4%;
+    padding-right: 4%;
+  }
+
+  .mainContent {
+    padding-left: 6%;
+    padding-right: 6%;
+  }
+
+  .toolbarHolder {
+    padding-left: 4%;
+    padding-right: 4%;
+    padding-top: 3%;
+    padding-bottom: 3%;
+  }
+
+  .toolbar {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    padding: 8px;
+  }
+
+  .buttonStyle {
+    padding: 12px 18px;
+  }
+
+  .threeBlocks,
+  .threePointBreakBox {
+    flex-direction: column;
+  }
+
+  .threePointBreakBox {
+    margin-top: 12%;
+    padding: 6% 0;
+  }
+
+  .third {
+    flex: 1 1 100%;
+    width: 100%;
+    padding: 0.75rem;
+  }
+
+  .description2 {
+    padding-left: 4%;
+    padding-right: 4%;
+  }
+
+  .spaceAtStart {
+    padding-top: 12%;
+  }
+
+  .contactMe,
+  .personal {
+    width: 100%;
+    padding: 8%;
+  }
+
+  .projectsDiv {
+    padding-left: 6%;
+    padding-right: 6%;
+  }
+
+  /* The timeline alternates left/right around a centre line on desktop.
+     On narrow screens it becomes a single column with the line down the left. */
+  .timeline::after {
+    left: 20px;
+    margin-left: 0;
+  }
+
+  .timelineItem:nth-child(odd),
+  .timelineItem:nth-child(even) {
+    left: 0;
+    width: 100%;
+    padding-left: 50px;
+  }
+
+  .timelineItem:nth-child(odd):after,
+  .timelineItem:nth-child(even):after {
+    left: 6px;
+    right: auto;
+    top: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .buttonStyle {
+    width: 100%;
+    text-align: center;
+  }
+}
