@@ -139,12 +139,22 @@ test.describe("theme toggle", () => {
 });
 
 test.describe("random effect", () => {
-  test("recolours text, and the theme toggle still works afterwards", async ({ page }) => {
+  test("has no visible button in the toolbar", async ({ page }) => {
+    await page.goto("/");
+    // It is an easter egg now: triggered by the footer name, not a button.
+    await expect(
+      page.getByRole("button", { name: "Random effect" })
+    ).toHaveCount(0);
+  });
+
+  test("is triggered by clicking the name in the footer", async ({ page }) => {
     await page.goto("/");
     const headline = page.locator("h1");
+    const footerName = page.getByRole("button", { name: "Made by Matti Hansen" });
+    await expect(footerName).toBeVisible();
 
     const before = await headline.evaluate((el) => getComputedStyle(el).color);
-    await page.getByRole("button", { name: "Random effect" }).click();
+    await footerName.click();
 
     await expect
       .poll(() => headline.evaluate((el) => el.style.color), { timeout: 5000 })
@@ -185,6 +195,27 @@ test.describe("personal section", () => {
     await expect(
       page.getByRole("link", { name: /Se med på YouTube/ })
     ).toHaveAttribute("href", "https://www.youtube.com/@TheRealDanishNature");
+  });
+});
+
+test.describe("reels", () => {
+  test("any reel thumbnails reference well-formed YouTube ids", async ({ page }) => {
+    await page.goto("/");
+    const reels = page.locator("[data-reel-id]");
+    const count = await reels.count();
+
+    for (let i = 0; i < count; i++) {
+      const id = await reels.nth(i).getAttribute("data-reel-id");
+      expect(id).toMatch(/^[A-Za-z0-9_-]{11}$/);
+      // Thumbnails are loading="lazy" and sit below the fold, so scroll them
+      // into view before asserting they decoded. A black card here means a
+      // bad video id.
+      const img = reels.nth(i).locator("img");
+      await img.scrollIntoViewIfNeeded();
+      await expect
+        .poll(() => img.evaluate((el) => el.naturalWidth), { timeout: 15000 })
+        .toBeGreaterThan(0);
+    }
   });
 });
 

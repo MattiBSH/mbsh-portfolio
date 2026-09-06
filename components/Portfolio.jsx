@@ -3,11 +3,13 @@ import Image from "next/image";
 import Link from "next/link";
 import styles from "../styles/theme.module.css";
 import ProjectCarousel from "./ProjectCarousel";
+import ReelGallery from "./ReelGallery";
 import {
   EMAIL,
   LINKEDIN_URL,
   YOUTUBE_URL,
   YOUTUBE_HANDLE,
+  REELS,
 } from "../lib/content";
 import { OG_IMAGE, SITE_URL } from "../lib/site";
 import { runRandomEffect, clearRandomColors } from "../lib/effects";
@@ -29,9 +31,6 @@ export default function Portfolio({ content, meta, toggleTheme }) {
         <div className={styles.toolbar}>
           <button onClick={handleThemeToggle} className={styles.buttonStyle}>
             <b>Dark / Light</b>
-          </button>
-          <button onClick={runRandomEffect} className={styles.buttonStyle}>
-            <b>Random effect</b>
           </button>
           <Link href={content.switchHref} className={styles.buttonStyle}>
             <b>{content.switchLabel}</b>
@@ -133,6 +132,10 @@ export default function Portfolio({ content, meta, toggleTheme }) {
                 >
                   ▶ {content.personal.linkText} ({YOUTUBE_HANDLE})
                 </a>
+                <ReelGallery
+                  reels={REELS}
+                  heading={content.personal.reelsHeading}
+                />
               </div>
             </div>
 
@@ -165,7 +168,18 @@ export default function Portfolio({ content, meta, toggleTheme }) {
       <div className={styles.edgeSpace}></div>
 
       <footer>
-        <h5>{content.footer}</h5>
+        <h5>
+          {/* Easter egg: the random effect has no visible button any more,
+              it is triggered by clicking the name here. A real <button> keeps
+              it reachable by keyboard. */}
+          <button
+            type="button"
+            className={styles.footerName}
+            onClick={runRandomEffect}
+          >
+            {content.footer}
+          </button>
+        </h5>
       </footer>
     </div>
   );

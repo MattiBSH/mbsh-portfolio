@@ -11,8 +11,8 @@ functionality was removed and replaced with portfolio content.
 
 The site is bilingual (English + Danish), has a light/dark theme toggle that
 persists across pages and reloads, a "random effect" gag button that recolours
-text, a carousel of past projects, and a short personal section linking to
-Matti's nature-video YouTube channel.
+text, a carousel of past projects, and a personal section with a gallery of
+nature reels from Matti's YouTube channel.
 
 ## Commands
 
@@ -42,6 +42,7 @@ verification story.
 components/
   Portfolio.jsx      The entire page, rendered for whichever language it is given
   ProjectCarousel.jsx  react-slick wrapper for the projects section
+  ReelGallery.jsx    Click-to-play YouTube Shorts grid
 lib/
   content.js         All page copy, as CONTENT.en / CONTENT.da, plus the
                      EMAIL / LINKEDIN_URL / YOUTUBE_URL constants
@@ -136,15 +137,6 @@ is on — measure slide width against `.slick-list` instead.
 - `next` is pinned to `"latest"` in package.json, so the resolved version drifts
   between installs. Worth pinning to the version you have tested against.
 
-## The Random effect button
-
-`lib/effects.js` owns it. `runRandomEffect` queues 10 steps that write inline
-`style.color` onto every `h1`-`h5`, `p` and `button`. Inline styles beat the
-CSS modules, so **anything that changes the theme must call
-`clearRandomColors` first** — both pages do this via `handleThemeToggle`.
-`clearRandomColors` also cancels queued steps, otherwise a pending timeout
-would repaint over the colours it just cleared.
-
 ## Deployment
 
 The site is deployed on Vercel at **https://mbsh-portfolio.vercel.app**.
@@ -158,19 +150,42 @@ suite asserts the exact value, so changing the domain means changing it in both
 
 Between Education and Contact there is an "Outside work" box linking to the
 YouTube channel `@TheRealDanishNature`, where Matti posts nature videos filmed
-in Denmark. Copy lives under `personal` in each language in `lib/content.js`;
-the URL is the `YOUTUBE_URL` constant in the same file.
+in Denmark, plus a grid of four Shorts.
+
+Copy lives under `personal` in each language in `lib/content.js`. The videos
+themselves are in the language-neutral `REELS` export in the same file — the
+clips are identical in both languages, only `reelsHeading` is translated. Add
+or remove videos by editing that array; the gallery renders nothing when it is
+empty.
+
+**Reels are click-to-play, and must stay that way.** A YouTube iframe pulls
+roughly a megabyte before anyone presses play, so four of them would dwarf the
+rest of the page. `ReelGallery.jsx` renders a lazy-loaded thumbnail from
+`i.ytimg.com` and only swaps in the real player (via `youtube-nocookie.com`) on
+click. Do not replace this with plain iframes.
 
 The copy is deliberately general about what the videos contain — the channel
 sits behind a consent redirect that cannot be read programmatically, so nothing
-about specific videos, upload frequency or subscriber counts should be written
-into the page unless Matti supplies it.
+about upload frequency or subscriber counts should be written into the page
+unless Matti supplies it.
 
-One testing gotcha this introduced: the link's accessible name contains
-"@TheRealDanishNature", and Playwright matches accessible names as
-case-insensitive **substrings** by default. That made
-`getByRole("link", { name: "danish" })` — the language switch — ambiguous. The
-language-switch locators now pass `exact: true`.
+Two testing gotchas this area introduced:
+
+- The channel link's accessible name contains "@TheRealDanishNature", and
+  Playwright matches accessible names as case-insensitive **substrings** by
+  default. That made `getByRole("link", { name: "danish" })` — the language
+  switch — ambiguous, so those locators pass `exact: true`.
+- Reel thumbnails are `loading="lazy"` and sit below the fold, so a test must
+  `scrollIntoViewIfNeeded()` and poll before asserting `naturalWidth`.
+
+## The random effect easter egg
+
+There is no "Random effect" button. It is triggered by clicking the name in the
+footer ("Made by Matti Hansen" / "Lavet af Matti Hansen"), which is a real
+`<button>` styled by `.footerName` to be visually identical to the surrounding
+text — keeping it a button means keyboard users can reach it. A test asserts no
+button named "Random effect" exists anywhere, so re-adding one to the toolbar
+will fail the suite.
 
 ## Project content
 
