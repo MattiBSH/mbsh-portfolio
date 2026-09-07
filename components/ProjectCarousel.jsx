@@ -42,10 +42,10 @@ const ProjectCarousel = ({ projects, lang = "en", labels = {} }) => {
               : `${project.from}–${project.to ?? labels.present ?? ""}`;
 
           return (
-            // react-slick wraps this in two divs of its own rather than
-            // merging into .slick-slide, so the data attributes land on a
-            // grandchild — selectors and tests use a descendant combinator.
-            // It must stay a single plain element; a Fragment breaks the wiring.
+            // react-slick wraps this in two divs of its own rather than merging
+            // into .slick-slide, so the data attributes land on a grandchild —
+            // selectors and tests use a descendant combinator. It must stay a
+            // single plain element; a Fragment breaks the slide wiring.
             <div
               key={project.id}
               data-project-id={project.id}

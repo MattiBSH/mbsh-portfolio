@@ -23,10 +23,13 @@ npm start       # serve the production build
 npm run preview # build and serve in one step
 npm test        # Playwright integration tests (builds and serves on :3100)
 npm run test:ui # same, in Playwright's interactive UI
+npm run lint    # next lint (eslint-config-next)
 ```
 
-Node >= 18 (`.nvmrc` pins `18`). There is no linter and no CI; `npm test` is the
-verification story.
+CI runs lint then the full Playwright suite on every push and PR
+(`.github/workflows/ci.yml`).
+
+Node >= 18 (`.nvmrc` pins `18`).
 
 ## Stack
 
@@ -70,13 +73,19 @@ public/images/       profile.png, image.png
 
 ## How the page works
 
-**Theming.** Both stylesheets export an identical set of ~32 class names
-(`container`, `headline`, `third`, `timeline`, `toolbar`, …). The page picks one
-whole module at runtime:
+**Theming.** One stylesheet, `styles/theme.module.css`. The light values are the
+base rules; the ~12 declarations that differ in dark mode live in a block keyed
+on `:global(html[data-theme="dark"])` near the end of the file. Class names never
+change with the theme, which is exactly what lets the pre-paint script in
+`pages/_document.js` set `data-theme` before first paint without a hydration
+mismatch.
 
-```js
-const styles = darkMode ? darkStyles : lightStyles;
-```
+Watch specificity when adding a dark override: `:global(html[data-theme="dark"])
+.foo` is (0,2,1), which beats a descendant rule like `.bar h2` at (0,1,1). That
+is how the education timeline once ended up with white text on a white card —
+the dark block recoloured `.timelineHeader` but nothing darkened
+`.timelineContent`. If a dark rule targets text, check what paints the
+background behind it.
 
 `darkMode` and `toggleTheme` are owned by `_app.js` and passed down as props, so
 the theme survives navigation between the two language pages. It is persisted to
@@ -141,6 +150,24 @@ Hansen/ })` also matches the footer's "Made by Matti Hansen", and counting
 `.slick-active` is unreliable because react-slick clones slides when `infinite`
 is on — measure slide width against `.slick-list` instead.
 
+## Accessibility and semantics
+
+Heading levels follow the document, not the font size: `h1` for the page title,
+`h2` for section headings, `h3` for timeline entries and project cards. Body copy
+is `<p>`, never a heading — several paragraphs used to be `<h4>` purely for its
+size, which is why `.description` and `.info` are applied to paragraphs now.
+`.timelineContent h3` is tied to that choice; changing the tag means changing the
+selector.
+
+Every interactive control has a `:focus-visible` ring, including slick's arrows
+and dots, which ship with `outline: none`. `prefers-reduced-motion` disables the
+hover transforms and reduces the random effect to a single recolour rather than
+ten repaints in two seconds.
+
+Contrast is asserted in the test suite rather than eyeballed — see the
+"regressions from the audit" block, which computes the real ratio from computed
+styles in both themes.
+
 ## Known issues
 
 - The Open Graph image is `profile.png`, which is 1127x774 (roughly 3:2).
@@ -171,8 +198,11 @@ are written fresh, never pasted from ticket summaries, and the rule is:
   makes the work legible to a Danish employer.
 
 Before deploying a change to project copy, grep the built output:
-`grep -riE "thisted|gladsaxe|netic|SBSIP-[0-9]|atlassian\.net" .next/server/pages/*.html`
-must return nothing.
+`grep -riE "<pilot municipality names>|SBSIP-[0-9]|atlassian\.net" .next/server/pages/*.html`
+must return nothing. **Substitute the actual names from the Jira export when running
+it — do not write them into this file.** This repository is public, and naming the
+pilot municipalities a few lines below a note that two of them piloted the work
+leaks exactly what the rule above exists to protect.
 
 None of the projects are publicly reachable — they are internal municipal
 systems, and the Fortis app has since been pulled from the App Store. Do not add

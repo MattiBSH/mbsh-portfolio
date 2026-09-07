@@ -9,16 +9,37 @@ const THUMB = (id) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 const EMBED = (id) =>
   `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&playsinline=1`;
 
-function ReelLightbox({ reels, index, onClose, onStep }) {
+function ReelLightbox({ reels, index, labels, onClose, onStep }) {
   const closeRef = useRef(null);
+  const dialogRef = useRef(null);
   const reel = reels[index];
+  const name = reel.title || `${labels.reel} ${index + 1}`;
 
   useEffect(() => {
-    // Escape closes, arrows move between reels.
+    // Escape closes, arrows move between reels, Tab stays inside the dialog.
     function onKey(event) {
-      if (event.key === "Escape") onClose();
-      else if (event.key === "ArrowRight") onStep(1);
-      else if (event.key === "ArrowLeft") onStep(-1);
+      if (event.key === "Escape") return onClose();
+      if (event.key === "ArrowRight") return onStep(1);
+      if (event.key === "ArrowLeft") return onStep(-1);
+      if (event.key !== "Tab") return;
+
+      // aria-modal only tells assistive tech the rest of the page is inert; it
+      // does not stop Tab walking out of the dialog. This does.
+      const focusable = dialogRef.current
+        ? dialogRef.current.querySelectorAll("button, iframe, [href]")
+        : [];
+      if (!focusable.length) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      const active = document.activeElement;
+
+      if (event.shiftKey && (active === first || !dialogRef.current.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault();
+        first.focus();
+      }
     }
     document.addEventListener("keydown", onKey);
 
@@ -38,10 +59,11 @@ function ReelLightbox({ reels, index, onClose, onStep }) {
 
   return createPortal(
     <div
+      ref={dialogRef}
       className={styles.lightbox}
       role="dialog"
       aria-modal="true"
-      aria-label={reel.title || "Nature clip"}
+      aria-label={name}
       data-lightbox
       onClick={onClose}
     >
@@ -50,7 +72,7 @@ function ReelLightbox({ reels, index, onClose, onStep }) {
         ref={closeRef}
         className={styles.lightboxClose}
         onClick={onClose}
-        aria-label="Close"
+        aria-label={labels.close}
       >
         ✕
       </button>
@@ -63,7 +85,7 @@ function ReelLightbox({ reels, index, onClose, onStep }) {
             e.stopPropagation();
             onStep(-1);
           }}
-          aria-label="Previous clip"
+          aria-label={labels.prev}
         >
           ‹
         </button>
@@ -78,8 +100,8 @@ function ReelLightbox({ reels, index, onClose, onStep }) {
           key={reel.id}
           className={styles.lightboxFrame}
           src={EMBED(reel.id)}
-          title={reel.title || "Nature clip"}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          title={name}
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
           allowFullScreen
         />
       </div>
@@ -92,7 +114,7 @@ function ReelLightbox({ reels, index, onClose, onStep }) {
             e.stopPropagation();
             onStep(1);
           }}
-          aria-label="Next clip"
+          aria-label={labels.next}
         >
           ›
         </button>
@@ -102,7 +124,7 @@ function ReelLightbox({ reels, index, onClose, onStep }) {
   );
 }
 
-const ReelGallery = ({ reels, heading }) => {
+const ReelGallery = ({ reels, heading, labels = {} }) => {
   const [active, setActive] = useState(null);
   const triggers = useRef([]);
 
@@ -130,7 +152,7 @@ const ReelGallery = ({ reels, heading }) => {
 
   return (
     <div className={styles.reelSection}>
-      {heading && <h4 className={styles.description}>{heading}</h4>}
+      {heading && <h2 className={styles.description}>{heading}</h2>}
 
       <div className={styles.reelGrid}>
         {reels.map((reel, i) => (
@@ -141,11 +163,20 @@ const ReelGallery = ({ reels, heading }) => {
               ref={(el) => (triggers.current[i] = el)}
               className={styles.reelPoster}
               onClick={() => setActive(i)}
-              aria-label={`Play: ${reel.title || "Nature clip"}`}
+              aria-label={`${labels.play || "Play"}: ${
+                reel.title || `${labels.reel || "Clip"} ${i + 1}`
+              }`}
             >
               {/* Plain <img>: next/image would need remotePatterns config for
-                  an external host, and these are small cropped thumbnails. */}
-              <img src={THUMB(reel.id)} alt="" loading="lazy" />
+                  an external host, and these are small cropped thumbnails that
+                  YouTube already serves optimised. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={THUMB(reel.id)}
+                alt=""
+                loading={i < 2 ? "eager" : "lazy"}
+                fetchPriority={i === 0 ? "high" : "auto"}
+              />
               <span className={styles.reelPlay} aria-hidden="true">
                 ▶
               </span>
@@ -158,6 +189,7 @@ const ReelGallery = ({ reels, heading }) => {
       {active !== null && (
         <ReelLightbox
           reels={reels}
+          labels={labels}
           index={active}
           onClose={close}
           onStep={step}

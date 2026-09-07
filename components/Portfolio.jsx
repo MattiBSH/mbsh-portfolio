@@ -17,7 +17,12 @@ export default function Portfolio({ content, meta, toggleTheme }) {
       />
 
       <div className={styles.container}>
-        <SiteHead meta={meta} path={content.homeHref} />
+        <SiteHead
+          meta={meta}
+          path={content.homeHref}
+          altPath={content.switchHref}
+          lang={content.lang}
+        />
 
         <main>
           <div className={styles.mainContent}>
@@ -31,7 +36,7 @@ export default function Portfolio({ content, meta, toggleTheme }) {
                   {content.name}
                 </h1>
                 <div className={styles.line}></div>
-                <h4 className={styles.description}>{content.intro}</h4>
+                <p className={styles.description}>{content.intro}</p>
               </div>
 
               <div className={styles.third}>
@@ -39,8 +44,9 @@ export default function Portfolio({ content, meta, toggleTheme }) {
                   <Image
                     className={styles.profileImage}
                     src="/images/profile.png"
-                    width={1200}
-                    height={1200}
+                    width={1127}
+                    height={774}
+                    sizes="(max-width: 900px) 80vw, 30vw"
                     priority
                     alt="Picture of the author"
                   />
@@ -48,14 +54,14 @@ export default function Portfolio({ content, meta, toggleTheme }) {
               </div>
 
               <div className={styles.third}>
-                <h3 className={styles.info}>{content.info}</h3>
+                <p className={styles.info}>{content.info}</p>
               </div>
 
               <div className={styles.threePointBreakBox}>
                 {content.skills.map((skill) => (
                   <div className={styles.third} key={skill.title}>
                     <h2 className={styles.point}>{skill.title}</h2>
-                    <h4 className={styles.description}>{skill.lead}</h4>
+                    <p className={styles.description}>{skill.lead}</p>
                     <p className={styles.description2}>{skill.body}</p>
                   </div>
                 ))}
@@ -69,7 +75,7 @@ export default function Portfolio({ content, meta, toggleTheme }) {
                 {content.education.map((item) => (
                   <div className={styles.timelineItem} key={item.title}>
                     <div className={styles.timelineContent}>
-                      <h2 className={styles.timelineHeader}>{item.title}</h2>
+                      <h3 className={styles.timelineHeader}>{item.title}</h3>
                       <p className={styles.timelineTimePeriod}>{item.period}</p>
                     </div>
                   </div>
@@ -81,15 +87,15 @@ export default function Portfolio({ content, meta, toggleTheme }) {
               <div className={styles.contactMe}>
                 <h2 className={styles.timelineHeader}>{content.contactTitle}</h2>
                 <br />
-                <h4 className={styles.description}>{content.contactLead}</h4>
+                <p className={styles.description}>{content.contactLead}</p>
                 <br />
-                <h4 className={styles.description}>
+                <p className={styles.description}>
                   {content.emailLabel}: <a href={`mailto:${EMAIL}`}>{EMAIL}</a> ✉️
-                </h4>
-                <h4 className={styles.description}>
+                </p>
+                <p className={styles.description}>
                   {content.linkedinLabel}:{" "}
                   <Link href={LINKEDIN_URL}>{content.linkedinText}</Link>
-                </h4>
+                </p>
               </div>
             </div>
           </div>

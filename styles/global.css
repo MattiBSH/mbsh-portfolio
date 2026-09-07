@@ -4,11 +4,21 @@
 html{
   background-color: #232020;
 }
+
+/* Warm accent for the dark theme. An "r, g, b" triplet rather than a hex so
+   each shadow in theme.module.css can choose its own alpha with
+   rgba(var(--warm), a). This is the single value to change to retune every
+   dark-theme shadow at once. */
+html[data-theme="dark"] {
+  --warm: 245, 196, 0;
+}
 body {
   padding: 0;
   margin: 0;
+  /* No Inter here: it was named first but never loaded by @font-face,
+     next/font or a stylesheet link, so every visitor already fell through to
+     the system stack. Naming it only made the intent misleading. */
   font-family:
-    Inter,
     -apple-system,
     BlinkMacSystemFont,
     Segoe UI,

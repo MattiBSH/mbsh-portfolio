@@ -64,7 +64,7 @@ test.describe("social preview metadata", () => {
     // OG images must be absolute AND on the deployed domain, or scrapers
     // render the preview without an image.
     const image = await content('meta[property="og:image"]');
-    expect(image).toBe("https://mbsh-portfolio.vercel.app/images/profile.png");
+    expect(image).toBe("https://mbsh-portfolio.vercel.app/images/og.jpg");
     expect(await content('meta[property="og:url"]')).toBe(
       "https://mbsh-portfolio.vercel.app"
     );
@@ -77,6 +77,110 @@ test.describe("social preview metadata", () => {
       .first()
       .getAttribute("content");
     expect(og).toContain("Softwareudvikler");
+  });
+});
+
+test.describe("regressions from the audit", () => {
+  test("dark theme: education timeline text is readable on its card", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Toggle dark mode" }).click();
+
+    // The dark block recolours .timelineHeader white; if nothing darkens
+    // .timelineContent the whole timeline is white-on-white.
+    const { fg, bg } = await page.evaluate(() => {
+      // h3, not h2: timeline entries nest under the Education heading.
+      const h = document.querySelector("h3[class*='timelineHeader']");
+      const card = h.closest("div[class*='timelineContent']");
+      return {
+        fg: getComputedStyle(h).color,
+        bg: getComputedStyle(card).backgroundColor,
+      };
+    });
+    expect(fg).not.toBe(bg);
+    expect(bg).not.toBe("rgb(255, 255, 255)");
+  });
+
+  test("the back link is readable against the panel in both themes", async ({ page }) => {
+    const lum = (rgb) => {
+      const [r, g, b] = rgb.match(/\d+/g).map(Number).map((v) => {
+        const c = v / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+    const ratio = async () => {
+      const { fg, bg } = await page.evaluate(() => {
+        const a = document.querySelector("a[class*='backLink']");
+        const panel = a.closest("div[class*='mainContent']");
+        return {
+          fg: getComputedStyle(a).color,
+          bg: getComputedStyle(panel).backgroundColor,
+        };
+      });
+      const [l1, l2] = [lum(fg), lum(bg)].sort((x, y) => y - x);
+      return (l1 + 0.05) / (l2 + 0.05);
+    };
+
+    await page.goto("/personal");
+    expect(await ratio()).toBeGreaterThan(4.5); // WCAG AA
+    await page.getByRole("button", { name: "Toggle dark mode" }).click();
+    expect(await ratio()).toBeGreaterThan(4.5);
+  });
+
+  test("every route declares a canonical and hreflang alternates", async ({ page }) => {
+    for (const [route, lang, alt] of [
+      ["/", "en", "/danish_index"],
+      ["/danish_index", "da", "/"],
+      ["/personal", "en", "/danish_personal"],
+      ["/danish_personal", "da", "/personal"],
+    ]) {
+      await page.goto(route);
+      const canonical = await page.getAttribute('link[rel="canonical"]', "href");
+      expect(canonical, route).toContain("mbsh-portfolio.vercel.app");
+      const other = await page.getAttribute(
+        `link[rel="alternate"][hreflang="${lang === "en" ? "da" : "en"}"]`,
+        "href"
+      );
+      expect(other, route).toContain(alt === "/" ? "vercel.app" : alt);
+    }
+  });
+
+  test("Danish routes ship lang=da in the static HTML, not just after JS", async ({ page }) => {
+    // Crawlers that do not run JavaScript only ever see the served attribute.
+    for (const route of ["/danish_index", "/danish_personal"]) {
+      const res = await page.request.get(route);
+      const html = await res.text();
+      const tag = html.match(/<html[^>]*>/)[0];
+      expect(tag, route).toContain('lang="da"');
+    }
+  });
+
+  test("the two front pages do not share a title", async ({ page }) => {
+    await page.goto("/");
+    const en = await page.title();
+    await page.goto("/danish_index");
+    expect(await page.title()).not.toBe(en);
+  });
+
+  test("each reel button has its own accessible name", async ({ page }) => {
+    await page.goto("/personal");
+    const names = await page.$$eval("[data-reel-id]", (els) =>
+      els.map((e) => e.getAttribute("aria-label"))
+    );
+    expect(names.length).toBeGreaterThan(1);
+    expect(new Set(names).size).toBe(names.length);
+  });
+
+  test("focusable controls keep a visible focus ring", async ({ page }) => {
+    await page.goto("/");
+    const outline = await page
+      .getByRole("button", { name: "Toggle dark mode" })
+      .evaluate((el) => {
+        el.focus();
+        const cs = getComputedStyle(el);
+        return cs.outlineStyle + " " + cs.outlineWidth;
+      });
+    expect(outline).not.toContain("none");
   });
 });
 
@@ -390,6 +494,17 @@ test.describe("reel lightbox", () => {
     await expect.poll(srcOf).not.toBe(first);
   });
 
+  test("Tab stays inside the lightbox", async ({ page }) => {
+    const box = await openFirst(page);
+    await expect(box).toBeVisible();
+    for (let i = 0; i < 8; i++) await page.keyboard.press("Tab");
+    const inside = await page.evaluate(() => {
+      const dlg = document.querySelector("[data-lightbox]");
+      return dlg ? dlg.contains(document.activeElement) : false;
+    });
+    expect(inside).toBe(true);
+  });
+
   test("focus returns to the thumbnail after closing", async ({ page }) => {
     await openFirst(page);
     await page.keyboard.press("Escape");
@@ -422,16 +537,61 @@ test.describe("layout", () => {
     expect(box.width).toBeGreaterThan(50);
   });
 
-  test("the page never scrolls horizontally", async ({ page }) => {
-    await page.goto("/");
-    const overflow = await page.evaluate(
-      () =>
-        document.documentElement.scrollWidth - document.documentElement.clientWidth
-    );
-    expect(overflow).toBeLessThanOrEqual(1);
+  const ROUTES = ["/", "/danish_index", "/personal", "/danish_personal"];
+
+  test("no route scrolls horizontally", async ({ page }) => {
+    for (const route of ROUTES) {
+      await page.goto(route);
+      const overflow = await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth -
+          document.documentElement.clientWidth
+      );
+      expect(overflow, route).toBeLessThanOrEqual(1);
+    }
   });
 
-  test("body text stays readable at this viewport", async ({ page }) => {
+  test("no route scrolls horizontally at 320px", async ({ page }) => {
+    // The narrowest phone still in use. slick's arrows sit 25px outside
+    // .projectsDiv, which is what broke this before.
+    await page.setViewportSize({ width: 320, height: 800 });
+    for (const route of ROUTES) {
+      await page.goto(route);
+      const overflow = await page.evaluate(
+        () =>
+          document.documentElement.scrollWidth -
+          document.documentElement.clientWidth
+      );
+      expect(overflow, route + " @320").toBeLessThanOrEqual(1);
+    }
+  });
+
+  test("timeline cards keep clear of the centre line on desktop", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "mobile", "single column on mobile");
+    await page.goto("/");
+    const gaps = await page.evaluate(() => {
+      const line = document.querySelector(
+        "div[class*='timeline']:not([class*='Item']):not([class*='Content'])"
+      );
+      const r0 = line.getBoundingClientRect();
+      const lx = r0.left + r0.width / 2;
+      return [...document.querySelectorAll("div[class*='timelineContent']")].map(
+        (c) => {
+          const r = c.getBoundingClientRect();
+          return Math.min(Math.abs(lx - r.right), Math.abs(r.left - lx));
+        }
+      );
+    });
+    expect(gaps.length).toBeGreaterThan(0);
+    for (const g of gaps) expect(g).toBeGreaterThan(8);
+  });
+
+  test("body text stays readable on every route", async ({ page }) => {
+    for (const route of ["/danish_index", "/personal", "/danish_personal"]) {
+      await page.goto(route);
+      const p = page.locator("p").first();
+      expect(await fontPx(p), route).toBeGreaterThanOrEqual(12);
+    }
     await page.goto("/");
     // The old `vw` sizes rendered body copy at roughly 3px on a phone.
     const body = page.locator("p").first();
@@ -550,6 +710,27 @@ test.describe("projects carousel", () => {
     const projects = (await projectIds(page)).length;
     const perPage = testInfo.project.name === "mobile" ? 1 : 3;
     expect(dots).toBe(Math.ceil(projects / perPage));
+  });
+
+  test("a hovered card is not clipped by the carousel viewport", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "mobile", "no hover on touch");
+    await page.goto("/");
+    const card = page.locator(".slick-slide.slick-active article").first();
+    await card.scrollIntoViewIfNeeded();
+    await card.hover();
+    await page.waitForTimeout(400);
+
+    // .projectCard lifts on hover and .slick-list clips overflow; if the list
+    // has no vertical padding the top of the card is cut off.
+    const { cardTop, listTop } = await page.evaluate(() => {
+      const a = document.querySelector(".slick-slide.slick-active article");
+      const l = document.querySelector(".slick-list");
+      return {
+        cardTop: a.getBoundingClientRect().top,
+        listTop: l.getBoundingClientRect().top,
+      };
+    });
+    expect(cardTop).toBeGreaterThanOrEqual(listTop);
   });
 
   test("adapts the number of visible slides to the viewport", async ({ page }, testInfo) => {
