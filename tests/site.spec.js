@@ -127,6 +127,43 @@ test.describe("regressions from the audit", () => {
     expect(await ratio()).toBeGreaterThan(4.5);
   });
 
+  test("every interactive control meets the 24x24 touch-target minimum", async ({ page }) => {
+    // WCAG 2.5.8, and what Lighthouse's "Touch targets do not have sufficient
+    // size or spacing" audit reports. slick ships 20x20 arrows and 20x20 dots,
+    // so this fails again the moment those overrides are dropped.
+    for (const route of ["/", "/danish_index", "/personal", "/danish_personal"]) {
+      await page.goto(route);
+      const undersized = await page.evaluate(() => {
+        const out = [];
+        document.querySelectorAll("a, button, [role=button]").forEach((el) => {
+          const b = el.getBoundingClientRect();
+          if (!b.width || !b.height) return;
+          // Carousel clones duplicate every control; measure the originals.
+          if (el.closest(".slick-cloned")) return;
+          if (b.width < 24 || b.height < 24) {
+            out.push(
+              `${el.tagName.toLowerCase()}.${String(el.className).split(" ")[0]} ` +
+                `${Math.round(b.width)}x${Math.round(b.height)}`
+            );
+          }
+        });
+        return [...new Set(out)];
+      });
+      expect(undersized, `${route} has undersized targets`).toEqual([]);
+    }
+  });
+
+  test("body text has readable line spacing", async ({ page }) => {
+    await page.goto("/");
+    // WCAG 1.4.12 asks for at least 1.5x. It is also what gives the inline
+    // email and LinkedIn links room to be tappable.
+    const ratio = await page.locator("p[class*='description']").first().evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return parseFloat(cs.lineHeight) / parseFloat(cs.fontSize);
+    });
+    expect(ratio).toBeGreaterThanOrEqual(1.5);
+  });
+
   test("every route declares a canonical and hreflang alternates", async ({ page }) => {
     for (const [route, lang, alt] of [
       ["/", "en", "/danish_index"],

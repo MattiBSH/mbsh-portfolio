@@ -48,6 +48,11 @@ export default function Portfolio({ content, meta, toggleTheme }) {
                     height={774}
                     sizes="(max-width: 900px) 80vw, 30vw"
                     priority
+                    // 65 rather than the default 75: this is a photograph
+                    // displayed at ~294 CSS px, where the difference is not
+                    // visible but the byte saving is significant. It is the
+                    // LCP element, so its weight sets the LCP time.
+                    quality={65}
                     alt="Picture of the author"
                   />
                 </div>

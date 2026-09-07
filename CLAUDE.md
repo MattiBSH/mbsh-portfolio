@@ -168,6 +168,36 @@ Contrast is asserted in the test suite rather than eyeballed — see the
 "regressions from the audit" block, which computes the real ratio from computed
 styles in both themes.
 
+**Touch targets must stay at or above 24x24** (WCAG 2.5.8, and what Lighthouse
+reports as "Touch targets do not have sufficient size or spacing"). slick-theme
+ships 20x20 arrows and 20x20 dots, so `.projectsDiv` overrides both — the dots
+get a 32px hit area with the visual dot kept small by the glyph `font-size`,
+independent of how big it is to hit. A test measures every `a`/`button` on all
+four routes; dropping those overrides fails it.
+
+Body copy uses `line-height: 1.6` (WCAG 1.4.12). Inline links inside a sentence
+carry `padding: 3px 2px` — vertical padding on an inline element grows the hit
+area without changing the line box, so the email and LinkedIn links clear 24px
+without the paragraph reflowing.
+
+## Performance
+
+The front page's LCP element is the profile photo, so its weight sets the LCP
+time — nothing else on the page comes close. Two things keep it down:
+
+- `next.config.js` enables **AVIF** ahead of WebP. Next only negotiates WebP by
+  default; AVIF is about 37% smaller here (79 kB vs 127 kB at w=1080).
+- The image is served at `quality={65}` rather than the default 75. At its
+  rendered size (~294 CSS px on a phone) the difference is not visible.
+
+Measured on a throttled Slow 4G + 4x CPU profile: LCP went 1728ms -> 1416ms.
+
+**Render-blocking CSS is not worth chasing here.** Lighthouse flags the two
+stylesheets, but they total 4.9 kB gzipped and finish at ~250ms — roughly 1.2
+seconds before LCP. Every script already carries `defer`. Inlining critical CSS
+would need `experimental.optimizeCss` and a critters dependency to shave a few
+milliseconds off FCP, which is already ~670ms.
+
 ## Known issues
 
 - The Open Graph image is `profile.png`, which is 1127x774 (roughly 3:2).

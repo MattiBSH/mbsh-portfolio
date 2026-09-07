@@ -55,6 +55,9 @@
   color: black;
   margin-top: 0%;
   font-size: clamp(0.95rem, 1vw, 1.15rem);
+  /* 1.6 is WCAG 1.4.12's readability target, and it is also what lifts the
+     inline email/LinkedIn links to a 24px-tall touch target. */
+  line-height: 1.6;
 
 }
 
@@ -65,7 +68,14 @@
   font-weight: 200;
   margin-top: 0%;
   font-size: clamp(0.85rem, 0.8vw, 1rem);
+  line-height: 1.6;
+}
 
+/* Links sitting inside a sentence. WCAG 2.5.8 exempts these from the 24px
+   minimum, but vertical padding on an inline element grows the hit area without
+   changing the line box, so there is no reason not to. */
+.description a {
+  padding: 3px 2px;
 }
 
 .third {
@@ -325,6 +335,9 @@
 .backLink {
   display: inline-block;
   margin-top: 2.5rem;
+  /* Padding, not a height: keeps the underline tight to the text while giving
+     the control the 24px minimum touch target. */
+  padding: 4px 2px;
   color: #1e4b5f;
   text-decoration: none;
   font-size: clamp(0.85rem, 0.9vw, 1rem);
@@ -408,6 +421,7 @@
      the footer's #f1f1f1 background. */
   color: #202020;
   font-weight: 700;
+  padding: 4px 6px;
   cursor: pointer;
 }
 
@@ -715,19 +729,23 @@
   margin-top: 18px;
 }
 
+/* 32px hit area with a small visual dot inside it. WCAG 2.5.8 wants at least
+   24x24 for a touch target; slick ships 20x20 and the earlier 16px override
+   here was smaller still. The glyph font-size controls how big the dot LOOKS,
+   independently of how big it is to hit. */
 .projectsDiv :global(.slick-dots li),
 .projectsDiv :global(.slick-dots li button) {
-  width: 16px;
-  height: 16px;
+  width: 32px;
+  height: 32px;
   margin: 0;
   padding: 0;
 }
 
 .projectsDiv :global(.slick-dots li button)::before {
-  width: 16px;
-  height: 16px;
-  line-height: 16px;
-  font-size: 8px;
+  width: 32px;
+  height: 32px;
+  line-height: 32px;
+  font-size: 9px;
   color: #ffffff;
   opacity: 0.35;
 }
@@ -1004,6 +1022,15 @@
    visible ring back on everything focusable — :focus-visible so it only shows
    for keyboard users, not on mouse click.
    --------------------------------------------------------------------------- */
+
+.projectsDiv :global(.slick-arrow) {
+  width: 44px;
+  height: 44px;
+}
+
+.projectsDiv :global(.slick-arrow)::before {
+  font-size: 22px;
+}
 
 .projectsDiv :global(.slick-arrow):focus-visible,
 .projectsDiv :global(.slick-dots li button):focus-visible,
