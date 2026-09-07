@@ -192,11 +192,28 @@ time — nothing else on the page comes close. Two things keep it down:
 
 Measured on a throttled Slow 4G + 4x CPU profile: LCP went 1728ms -> 1416ms.
 
-**Render-blocking CSS is not worth chasing here.** Lighthouse flags the two
-stylesheets, but they total 4.9 kB gzipped and finish at ~250ms — roughly 1.2
-seconds before LCP. Every script already carries `defer`. Inlining critical CSS
-would need `experimental.optimizeCss` and a critters dependency to shave a few
-milliseconds off FCP, which is already ~670ms.
+**Critical CSS is inlined** via `experimental.optimizeCss` (which needs the
+`critters` dev dependency). The two stylesheets ship as
+`media="print" onload="this.media='all'"` so they no longer block the first
+paint. Under real CPU+network throttling this took FCP from 1.6s to 0.9s and the
+Lighthouse performance score from 99 to 100.
+
+If you change the markup substantially, re-check this: critters decides what is
+"critical" by scanning the rendered HTML, so a rule it fails to spot would show
+as a flash of unstyled content on a slow connection. `npm test` covers it
+indirectly (contrast, touch targets and layout all read computed styles), and
+the quick manual check is to throttle to Slow 4G and compare a screenshot at
+~250ms against one after full load.
+
+**Read Lighthouse's score, not its Insights list.** The Insights entries
+("Improve image delivery", "Legacy JavaScript", "Render-blocking requests") all
+carry weight 0 and cost nothing. The score comes only from FCP, LCP, TBT, CLS
+and Speed Index.
+
+**Lighthouse's default throttling is simulated and pessimistic here.** It
+attributes ~79% of LCP to "render delay" that real throttling does not show —
+with `--throttling-method=devtools` the gap between FCP and LCP is 0.1s. When a
+number looks wrong, re-run with real throttling before optimising against it.
 
 ## Known issues
 
