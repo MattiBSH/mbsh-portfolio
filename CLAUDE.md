@@ -205,6 +205,14 @@ indirectly (contrast, touch targets and layout all read computed styles), and
 the quick manual check is to throttle to Slow 4G and compare a screenshot at
 ~250ms against one after full load.
 
+**No web fonts are downloaded.** The site uses the system font stack, and
+slick-carousel's bundled icon font — which it uses only for the `←`, `→` and `•`
+glyphs — is bypassed by pointing those pseudo-elements at the inherited family.
+An unused `@font-face` is never fetched, which is strictly better than setting
+`font-display` (that still downloads the file). The arrows and dots are drawn in
+CSS instead: 44px circles and 10px round dots. A test asserts zero font requests
+across all four routes, so reintroducing one is caught immediately.
+
 **Read Lighthouse's score, not its Insights list.** The Insights entries
 ("Improve image delivery", "Legacy JavaScript", "Render-blocking requests") all
 carry weight 0 and cost nothing. The score comes only from FCP, LCP, TBT, CLS

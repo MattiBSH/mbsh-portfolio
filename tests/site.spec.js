@@ -153,6 +153,38 @@ test.describe("regressions from the audit", () => {
     }
   });
 
+  test("no route downloads a web font", async ({ page }) => {
+    // The site uses the system font stack. slick-carousel bundles an icon font
+    // for its arrow and dot glyphs, which Lighthouse flags for a missing
+    // font-display; the CSS points those pseudo-elements at the inherited
+    // family instead, leaving that @font-face unused and unfetched.
+    const fonts = [];
+    page.on("request", (r) => {
+      if (/\.(woff2?|ttf|eot|otf)(\?|$)/i.test(r.url())) fonts.push(r.url());
+    });
+    for (const route of ["/", "/danish_index", "/personal", "/danish_personal"]) {
+      await page.goto(route);
+      await page.waitForLoadState("networkidle");
+    }
+    expect(fonts).toEqual([]);
+  });
+
+  test("carousel arrows and dots survive without the icon font", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "mobile", "arrows are desktop-sized here");
+    await page.goto("/");
+    // Drawn in CSS now, so assert the shapes rather than a glyph.
+    const arrow = await page.locator(".slick-prev").boundingBox();
+    expect(Math.round(arrow.width)).toBe(44);
+    expect(Math.round(arrow.height)).toBe(44);
+
+    const dot = await page.locator(".slick-dots li button").first().evaluate((el) => {
+      const cs = getComputedStyle(el, "::before");
+      return { w: cs.width, r: cs.borderRadius, bg: cs.backgroundColor };
+    });
+    expect(dot.w).toBe("10px");
+    expect(dot.bg).toContain("255, 255, 255");
+  });
+
   test("body text has readable line spacing", async ({ page }) => {
     await page.goto("/");
     // WCAG 1.4.12 asks for at least 1.5x. It is also what gives the inline
