@@ -14,13 +14,13 @@ test.describe("page loads", () => {
     await expect(page.getByRole("heading", { name: "Frontend" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Backend" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "DevOps" })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Education" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Background" })).toBeVisible();
   });
 
   test("Danish page renders translated content", async ({ page }) => {
     await page.goto("/danish_index");
     await expect(page.getByRole("heading", { name: /Jeg er/ })).toBeVisible();
-    await expect(page.getByRole("heading", { name: "Uddannelse" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Baggrund" })).toBeVisible();
   });
 
   test("each page declares the right document language", async ({ page }) => {
@@ -51,11 +51,11 @@ test.describe("page loads", () => {
   });
 });
 
-test.describe("work experience", () => {
+test.describe("background timeline", () => {
   const entries = (page) =>
-    page.$$eval("[data-experience-id]", (els) =>
+    page.$$eval("[data-timeline-id]", (els) =>
       els.map((el) => ({
-        id: el.dataset.experienceId,
+        id: el.dataset.timelineId,
         heading: el.querySelector("h3").textContent.trim(),
         // The internship badge is a span inside this line; strip it so
         // `period` means the dates and nothing else.
@@ -64,18 +64,19 @@ test.describe("work experience", () => {
           clone.querySelectorAll("span").forEach((sp) => sp.remove());
           return clone.textContent.trim();
         })(),
-        body: el.querySelectorAll("p")[1].textContent.trim(),
+        body: el.querySelectorAll("p")[1]
+          ? el.querySelectorAll("p")[1].textContent.trim()
+          : "",
       }))
     );
 
   test("the section lists every role with a company and a period", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("heading", { name: "Experience" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Background" })).toBeVisible();
     const jobs = await entries(page);
     expect(jobs.length).toBeGreaterThanOrEqual(2);
     for (const j of jobs) {
       expect(j.heading, j.id).not.toBe("");
-      expect(j.body, j.id).not.toBe("");
       // "2023–now" or "2021–2022" — a bare year is not a period.
       // A single-year role renders as one year, a span as "from–to".
       expect(j.period, j.id).toMatch(/^\d{4}([–-].+)?$/);
@@ -95,10 +96,10 @@ test.describe("work experience", () => {
 
   test("internships are badged and the current role is not", async ({ page }) => {
     await page.goto("/");
-    const badged = await page.$$eval("[data-experience-id]", (els) =>
+    const badged = await page.$$eval("[data-timeline-id]", (els) =>
       els
         .filter((el) => el.querySelector("span"))
-        .map((el) => el.dataset.experienceId)
+        .map((el) => el.dataset.timelineId)
     );
     // Interning somewhere then being hired is the point of splitting these.
     expect(badged).toContain("meew-intern");
@@ -111,11 +112,11 @@ test.describe("work experience", () => {
   test("the internship badge is translated", async ({ page }) => {
     await page.goto("/");
     const en = await page
-      .locator('[data-experience-id="meew-intern"] span')
+      .locator('[data-timeline-id="meew-intern"] span')
       .textContent();
     await page.goto("/danish_index");
     const da = await page
-      .locator('[data-experience-id="meew-intern"] span')
+      .locator('[data-timeline-id="meew-intern"] span')
       .textContent();
     expect(en.trim()).toBe("Internship");
     expect(da.trim()).toBe("Praktik");
@@ -123,10 +124,10 @@ test.describe("work experience", () => {
 
   test("a placement that converted shows both stages", async ({ page }) => {
     await page.goto("/");
-    const kinds = await page.$$eval("[data-experience-id]", (els) =>
+    const kinds = await page.$$eval("[data-timeline-id]", (els) =>
       Object.fromEntries(
         els.map((el) => [
-          el.dataset.experienceId,
+          el.dataset.timelineId,
           el.querySelector("span") ? el.querySelector("span").textContent.trim() : null,
         ])
       )
@@ -137,27 +138,43 @@ test.describe("work experience", () => {
     expect(kinds["dafolo-dev"]).toBeNull();
   });
 
-  test("experience comes before education on the page", async ({ page }) => {
+  test("the merged timeline runs newest to oldest", async ({ page }) => {
     await page.goto("/");
-    // A reader looks for work history first; it is also the more recent of the two.
-    const order = await page.$$eval("h2", (els) =>
-      els.map((e) => e.textContent.trim())
+    // Work and study share one timeline now, so the ordering is the only thing
+    // telling the reader what happened when.
+    const years = await page.$$eval("[data-timeline-id]", (els) =>
+      els.map((el) => parseInt(el.querySelectorAll("p")[0].textContent.trim(), 10))
     );
-    expect(order.indexOf("Experience")).toBeGreaterThan(-1);
-    expect(order.indexOf("Experience")).toBeLessThan(order.indexOf("Education"));
+    expect(years.length).toBeGreaterThanOrEqual(6);
+    for (let i = 1; i < years.length; i++) {
+      expect(years[i], `entry ${i} starts after the one above it`).toBeLessThanOrEqual(years[i - 1]);
+    }
+  });
+
+  test("education and work sit in one timeline, told apart by kind", async ({ page }) => {
+    await page.goto("/");
+    const kinds = await page.$$eval("[data-kind]", (els) =>
+      els.map((el) => el.dataset.kind)
+    );
+    expect(kinds).toContain("education");
+    expect(kinds).toContain("role");
+    expect(kinds).toContain("internship");
+    // One timeline container, not two.
+    expect(await page.locator("div[class*='timeline']:not([class*='Item']):not([class*='Content'])").count()).toBe(1);
   });
 
   test("experience is translated, and both languages list the same roles", async ({ page }) => {
     await page.goto("/");
     const en = await entries(page);
     await page.goto("/danish_index");
-    await expect(page.getByRole("heading", { name: "Erfaring" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Baggrund" })).toBeVisible();
     const da = await entries(page);
 
     expect(da.map((j) => j.id)).toEqual(en.map((j) => j.id));
     for (let i = 0; i < en.length; i++) {
-      // Same facts, different prose — a missing translation would match.
-      expect(da[i].body, en[i].id).not.toBe(en[i].body);
+      // Education entries carry no prose; only compare where there is some.
+      // Same facts, different wording: a missing translation would match.
+      if (en[i].body) expect(da[i].body, en[i].id).not.toBe(en[i].body);
       if (en[i].period.includes("now")) {
         // Only the open-ended role has a translatable word in its period.
         expect(da[i].period, en[i].id).toContain("nu");

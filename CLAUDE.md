@@ -118,22 +118,27 @@ flex rows stack and the timeline collapses from its alternating left/right
 layout to a single column with the line down the left edge. The carousel drops
 to 2 slides at 1024px and 1 slide at 640px via react-slick's `responsive` array.
 
-**Work experience** comes from `EXPERIENCE` in `lib/content.js`, the same shape
-as `PROJECTS`: `company` keys into `COMPANIES`, years and ids are top level, and
-only the role title and prose are nested per language. It renders with the same
-timeline markup as Education and sits above it, because work history is what a
-reader looks for first.
+**Work and education share one timeline.** `EXPERIENCE` and `EDUCATION` in
+`lib/content.js` have the same shape — `company` keys into `COMPANIES`, years
+and ids at the top level, only prose nested per language — and
+`timelineEntries()` merges and sorts them. Sorting is most recent first; where
+two entries start in the same year an ongoing one outranks a finished one, then
+a later end date wins. That is what puts the current Dafolo role above the
+internship before it and slots the PBA between them.
 
-`kind: "internship"` badges an entry. Matti interned at both companies, so the
-Dafolo internship and the developer role are two entries rather than one line —
-interning somewhere and then being hired there is a stronger signal than a
-single date range that hides it. A period where `from === to` renders as one
-year rather than "2023–2023".
+They were two separate sections until it became clear the study and the work
+interleave: the PBA runs straight into the Dafolo internship, and splitting them
+hid that. Education entries carry no description, so the card renders title,
+period and badge only.
 
-The dates were **inferred** from the project years and the education timeline
-(Datamatiker to 2022, PBA to 2023, both carrying a mandatory internship) and
-have **not been confirmed**. If they disagree with the LinkedIn profile the site
-is worse than if it said nothing — check them before relying on them.
+`kind` badges an entry — `internship`, `student` or `education` — with the label
+from `kindLabels` in each language. An entry with no `kind` is ordinary
+employment and gets no badge. Education also gets an accent dot on the timeline
+so the two kinds are separable at a glance without a legend.
+
+The dates were **inferred** from the project years and have **not been
+confirmed**. If they disagree with the LinkedIn profile the site is worse than
+if it said nothing.
 
 **Projects** come from the single `PROJECTS` array in `lib/content.js`. It is
 language-neutral: `id`, `company`, `from`/`to` and `tech` sit at the top level and

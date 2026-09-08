@@ -211,10 +211,10 @@
 .timeline {
   padding-top: 2%;
   position: relative;
-  /* 720, not 600: at half of 600 the cards were narrow enough that a paragraph
-     of prose ran to a dozen lines. This is a cap, not a width — narrower
-     viewports still shrink it. */
-  max-width: 720px;
+  /* 792, up from an original 600: at half of 600 the cards were narrow enough
+     that a paragraph of prose ran to a dozen lines. This is a cap, not a width,
+     so narrower viewports still shrink it. */
+  max-width: 792px;
   margin: 0 auto;
 }
 
@@ -266,6 +266,14 @@
   top: 20px;
   border-radius: 50%;
   z-index: 1;
+}
+
+/* Education entries get an accent dot so work and study are distinguishable at
+   a glance now that they share one timeline, without needing a legend. */
+.timelineItem[data-kind="education"]:nth-child(odd):after,
+.timelineItem[data-kind="education"]:nth-child(even):after {
+  background-color: #7fd4ff;
+  border-color: #1e4b5f;
 }
 
 /* Position odd timeline items to the left. The padding is what keeps the card
