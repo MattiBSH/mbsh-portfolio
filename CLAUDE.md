@@ -118,6 +118,23 @@ flex rows stack and the timeline collapses from its alternating left/right
 layout to a single column with the line down the left edge. The carousel drops
 to 2 slides at 1024px and 1 slide at 640px via react-slick's `responsive` array.
 
+**Work experience** comes from `EXPERIENCE` in `lib/content.js`, the same shape
+as `PROJECTS`: `company` keys into `COMPANIES`, years and ids are top level, and
+only the role title and prose are nested per language. It renders with the same
+timeline markup as Education and sits above it, because work history is what a
+reader looks for first.
+
+`kind: "internship"` badges an entry. Matti interned at both companies, so the
+Dafolo internship and the developer role are two entries rather than one line —
+interning somewhere and then being hired there is a stronger signal than a
+single date range that hides it. A period where `from === to` renders as one
+year rather than "2023–2023".
+
+The dates were **inferred** from the project years and the education timeline
+(Datamatiker to 2022, PBA to 2023, both carrying a mandatory internship) and
+have **not been confirmed**. If they disagree with the LinkedIn profile the site
+is worse than if it said nothing — check them before relying on them.
+
 **Projects** come from the single `PROJECTS` array in `lib/content.js`. It is
 language-neutral: `id`, `company`, `from`/`to` and `tech` sit at the top level and
 so cannot differ between the two pages, while `en` and `da` nest only the prose.
@@ -249,8 +266,13 @@ are written fresh, never pasted from ticket summaries, and the rule is:
   name of any municipality that piloted a feature. The export this came from
   named at least two as pilot customers.
 - **Fine**: SBSYS, SBSIP, Datafordeleren, DAWA, Dataforsyningen, CVR, BFE,
-  matrikel/ejerlav — publicly documented Danish public-sector systems, and what
-  makes the work legible to a Danish employer.
+  matrikel/ejerlav, Kombit and its fordelingskomponent — publicly documented
+  Danish public-sector systems and infrastructure, and what makes the work
+  legible to a Danish employer.
+- **Watch the credit**, not just the confidentiality. The fordelingskomponent is
+  Kombit's, not Dafolo's and not Matti's; the internship entry describes
+  *adopting* it. Overstating authorship of shared public infrastructure is the
+  kind of error a reader in this sector spots instantly.
 
 Before deploying a change to project copy, grep the built output:
 `grep -riE "<pilot municipality names>|SBSIP-[0-9]|atlassian\.net" .next/server/pages/*.html`
@@ -343,6 +365,16 @@ footer ("Made by Matti Hansen" / "Lavet af Matti Hansen"), which is a real
 text — keeping it a button means keyboard users can reach it. A test asserts no
 button named "Random effect" exists anywhere, so re-adding one to the toolbar
 will fail the suite.
+
+## Writing the copy
+
+No em dashes or en dashes in anything a visitor reads. They are a common tell
+for machine-written text, and the site is meant to read as Matti's own writing.
+Use a full stop and a new sentence, a comma, or a colon instead; date ranges use
+a plain hyphen (`2021-2022`). A test asserts this across all four routes, so a
+stray one fails the suite rather than reaching the page.
+
+This applies to page copy only. Code comments and this file are unaffected.
 
 ## Conventions
 

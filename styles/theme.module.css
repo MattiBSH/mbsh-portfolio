@@ -211,7 +211,10 @@
 .timeline {
   padding-top: 2%;
   position: relative;
-  max-width: 600px;
+  /* 720, not 600: at half of 600 the cards were narrow enough that a paragraph
+     of prose ran to a dozen lines. This is a cap, not a width — narrower
+     viewports still shrink it. */
+  max-width: 720px;
   margin: 0 auto;
 }
 
@@ -291,6 +294,31 @@
 .timelineContent h3 {
   margin-top: 0;
   color: #333;
+}
+
+/* Marks an entry as an internship. Deliberately quiet — it is a qualifier on
+   the role, not a headline. */
+.timelineBadge {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  font-size: 0.7em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  color: #1e4b5f;
+  background-color: rgba(0, 118, 165, 0.15);
+  border: 1px solid rgba(0, 118, 165, 0.35);
+  border-radius: 999px;
+}
+
+/* The experience entries carry a sentence of prose; the education ones only a
+   period. Smaller and lighter than the period line so the role stays dominant. */
+.timelineRole {
+  margin: 0.5rem 0 0;
+  font-size: clamp(0.8rem, 0.85vw, 0.92rem);
+  line-height: 1.5;
+  text-align: left;
 }
 
 /* Styling for the description inside each timeline item */
@@ -825,6 +853,12 @@
 :global(html[data-theme="dark"]) .timelineContent h3,
 :global(html[data-theme="dark"]) .timelineContent p {
   color: #ffffff;
+}
+
+:global(html[data-theme="dark"]) .timelineBadge {
+  color: #9fd8ee;
+  background-color: rgba(127, 212, 255, 0.14);
+  border-color: rgba(127, 212, 255, 0.4);
 }
 
 /* ---------------------------------------------------------------------------

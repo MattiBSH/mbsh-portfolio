@@ -39,7 +39,7 @@ const ProjectCarousel = ({ projects, lang = "en", labels = {} }) => {
           const period =
             project.to === project.from
               ? String(project.from)
-              : `${project.from}–${project.to ?? labels.present ?? ""}`;
+              : `${project.from}-${project.to ?? labels.present ?? ""}`;
 
           return (
             // react-slick wraps this in two divs of its own rather than merging

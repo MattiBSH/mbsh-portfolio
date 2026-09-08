@@ -3,7 +3,7 @@ import Link from "next/link";
 import styles from "../styles/theme.module.css";
 import ProjectCarousel from "./ProjectCarousel";
 import { SiteHead, Toolbar, SiteFooter } from "./SiteChrome";
-import { EMAIL, LINKEDIN_URL, PROJECTS } from "../lib/content";
+import { EMAIL, LINKEDIN_URL, PROJECTS, EXPERIENCE, COMPANIES } from "../lib/content";
 // The whole page, for either language. Copy comes from lib/content.js and the
 // <head> metadata from lib/site.js, so the two page files under pages/ are just
 // thin wrappers that pick a language.
@@ -70,6 +70,52 @@ export default function Portfolio({ content, meta, toggleTheme }) {
                     <p className={styles.description2}>{skill.body}</p>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Experience before education: it is what a reader is looking
+                for first, and it is the more recent of the two. */}
+            <div className={styles.education}>
+              <h2 className={styles.basicHeadline}>
+                {content.experienceTitle}
+              </h2>
+              <br />
+              <div className={styles.timeline}>
+                {EXPERIENCE.map((job) => {
+                  const copy = job[content.lang] || job.en;
+                  const company = COMPANIES[job.company] || {
+                    name: job.company,
+                  };
+                  const period =
+                    job.to === job.from
+                      ? String(job.from)
+                      : `${job.from}-${job.to ?? content.projectLabels.present}`;
+                  return (
+                    <div className={styles.timelineItem} key={job.id}>
+                      <div
+                        className={styles.timelineContent}
+                        data-experience-id={job.id}
+                      >
+                        <h3 className={styles.timelineHeader}>
+                          {copy.role}
+                          {" · "}
+                          {company.name}
+                        </h3>
+                        <p className={styles.timelineTimePeriod}>
+                          {period}
+                          {job.kind && content.kindLabels[job.kind] && (
+                            <span className={styles.timelineBadge}>
+                              {content.kindLabels[job.kind]}
+                            </span>
+                          )}
+                        </p>
+                        <p className={styles.timelineRole}>
+                          {copy.description}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 

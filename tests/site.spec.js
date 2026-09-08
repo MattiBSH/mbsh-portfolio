@@ -51,6 +51,124 @@ test.describe("page loads", () => {
   });
 });
 
+test.describe("work experience", () => {
+  const entries = (page) =>
+    page.$$eval("[data-experience-id]", (els) =>
+      els.map((el) => ({
+        id: el.dataset.experienceId,
+        heading: el.querySelector("h3").textContent.trim(),
+        // The internship badge is a span inside this line; strip it so
+        // `period` means the dates and nothing else.
+        period: (() => {
+          const clone = el.querySelectorAll("p")[0].cloneNode(true);
+          clone.querySelectorAll("span").forEach((sp) => sp.remove());
+          return clone.textContent.trim();
+        })(),
+        body: el.querySelectorAll("p")[1].textContent.trim(),
+      }))
+    );
+
+  test("the section lists every role with a company and a period", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Experience" })).toBeVisible();
+    const jobs = await entries(page);
+    expect(jobs.length).toBeGreaterThanOrEqual(2);
+    for (const j of jobs) {
+      expect(j.heading, j.id).not.toBe("");
+      expect(j.body, j.id).not.toBe("");
+      // "2023–now" or "2021–2022" — a bare year is not a period.
+      // A single-year role renders as one year, a span as "from–to".
+      expect(j.period, j.id).toMatch(/^\d{4}([–-].+)?$/);
+    }
+  });
+
+  test("the current role is open-ended, earlier ones are closed", async ({ page }) => {
+    await page.goto("/");
+    const jobs = await entries(page);
+    const current = jobs.find((j) => j.id === "dafolo-dev");
+    expect(current.period).toContain("now");
+    expect(current.heading).toContain("Dafolo");
+    const past = jobs.find((j) => j.id === "meew-student");
+    expect(past.period).not.toContain("now");
+    expect(past.period).toMatch(/\d{4}[–-]\d{4}/);
+  });
+
+  test("internships are badged and the current role is not", async ({ page }) => {
+    await page.goto("/");
+    const badged = await page.$$eval("[data-experience-id]", (els) =>
+      els
+        .filter((el) => el.querySelector("span"))
+        .map((el) => el.dataset.experienceId)
+    );
+    // Interning somewhere then being hired is the point of splitting these.
+    expect(badged).toContain("meew-intern");
+    expect(badged).toContain("meew-student");
+    expect(badged).toContain("dafolo-intern");
+    // The current, ordinary role carries no qualifier.
+    expect(badged).not.toContain("dafolo-dev");
+  });
+
+  test("the internship badge is translated", async ({ page }) => {
+    await page.goto("/");
+    const en = await page
+      .locator('[data-experience-id="meew-intern"] span')
+      .textContent();
+    await page.goto("/danish_index");
+    const da = await page
+      .locator('[data-experience-id="meew-intern"] span')
+      .textContent();
+    expect(en.trim()).toBe("Internship");
+    expect(da.trim()).toBe("Praktik");
+  });
+
+  test("a placement that converted shows both stages", async ({ page }) => {
+    await page.goto("/");
+    const kinds = await page.$$eval("[data-experience-id]", (els) =>
+      Object.fromEntries(
+        els.map((el) => [
+          el.dataset.experienceId,
+          el.querySelector("span") ? el.querySelector("span").textContent.trim() : null,
+        ])
+      )
+    );
+    // meew ran internship -> student worker; Dafolo internship -> employee.
+    expect(kinds["meew-intern"]).toBe("Internship");
+    expect(kinds["meew-student"]).toBe("Student worker");
+    expect(kinds["dafolo-dev"]).toBeNull();
+  });
+
+  test("experience comes before education on the page", async ({ page }) => {
+    await page.goto("/");
+    // A reader looks for work history first; it is also the more recent of the two.
+    const order = await page.$$eval("h2", (els) =>
+      els.map((e) => e.textContent.trim())
+    );
+    expect(order.indexOf("Experience")).toBeGreaterThan(-1);
+    expect(order.indexOf("Experience")).toBeLessThan(order.indexOf("Education"));
+  });
+
+  test("experience is translated, and both languages list the same roles", async ({ page }) => {
+    await page.goto("/");
+    const en = await entries(page);
+    await page.goto("/danish_index");
+    await expect(page.getByRole("heading", { name: "Erfaring" })).toBeVisible();
+    const da = await entries(page);
+
+    expect(da.map((j) => j.id)).toEqual(en.map((j) => j.id));
+    for (let i = 0; i < en.length; i++) {
+      // Same facts, different prose — a missing translation would match.
+      expect(da[i].body, en[i].id).not.toBe(en[i].body);
+      if (en[i].period.includes("now")) {
+        // Only the open-ended role has a translatable word in its period.
+        expect(da[i].period, en[i].id).toContain("nu");
+      } else {
+        // A closed range is just years, identical in both languages.
+        expect(da[i].period, en[i].id).toBe(en[i].period);
+      }
+    }
+  });
+});
+
 test.describe("social preview metadata", () => {
   test("English page exposes description and Open Graph tags", async ({ page }) => {
     await page.goto("/");
@@ -183,6 +301,17 @@ test.describe("regressions from the audit", () => {
     });
     expect(dot.w).toBe("10px");
     expect(dot.bg).toContain("255, 255, 255");
+  });
+
+  test("no em dashes in the rendered copy", async ({ page }) => {
+    // They read as a tell for machine-written text. Hyphens and ordinary
+    // sentence breaks instead; date ranges use a plain hyphen.
+    for (const route of ["/", "/danish_index", "/personal", "/danish_personal"]) {
+      await page.goto(route);
+      const text = await page.evaluate(() => document.body.innerText);
+      expect(text, route).not.toContain("—"); // em dash
+      expect(text, route).not.toContain("–"); // en dash
+    }
   });
 
   test("body text has readable line spacing", async ({ page }) => {
