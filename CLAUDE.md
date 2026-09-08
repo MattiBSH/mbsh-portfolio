@@ -29,7 +29,9 @@ npm run lint    # next lint (eslint-config-next)
 CI runs lint then the full Playwright suite on every push and PR
 (`.github/workflows/ci.yml`).
 
-Node >= 18 (`.nvmrc` pins `18`).
+Node >= 20.9 (`.nvmrc` pins `20`, and `ci.yml` reads the version from that
+file rather than repeating it). The floor comes from the dependencies, not
+from the app: `sharp` requires >= 20.9.0 and `@playwright/test` requires >= 20.
 
 ## Stack
 
