@@ -9,6 +9,18 @@
   background-color: #2d2d2d;
 }
 
+/* The lower half of the page, below the projects band. Same dark frame as
+   .container but without its min-height: that exists to give the hero a full
+   screen, and applying it here would leave a screenful of empty grey. */
+.lowerBand {
+  padding-left: 10%;
+  padding-right: 10%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #2d2d2d;
+}
+
 .mainContent{
   padding-left: 10%;
   padding-right: 10%;
@@ -203,7 +215,8 @@
 }
 
 .education{
-  margin-top: 10%;
+  /* No margin-top: the panel it now sits in opens with .spaceAtStart, and a
+     margin here would collapse straight through the panel's top edge. */
   text-align: center;
 }
 
@@ -356,6 +369,62 @@
 
 .personalPage .channelLink {
   margin-top: 1.5rem;
+}
+
+/* A page that paints its own full background instead of holding a light
+   content panel. The greys that frame the front page (.toolbarHolder and
+   .edgeSpace at #2d2d2d) exist to sit flush against .container behind that
+   panel; here they would be unexplained bands, so they go transparent and let
+   the page colour through. */
+.flatPage {
+  min-height: 100vh;
+  background-color: #f0faff;
+}
+
+.flatPage .toolbarHolder,
+.flatPage .edgeSpace,
+/* global.css paints every <footer> #f1f1f1, which sits flush under the front
+   page's light panel. Here it would be a stray strip across the bottom. */
+.flatPage footer {
+  background-color: transparent;
+}
+
+/* .footerName hardcodes #202020 for that #f1f1f1 band; with the band gone the
+   name has to follow the page instead. */
+.flatPage .footerName {
+  color: #1c2b33;
+}
+
+/* The h1 on such a page. Not .headlineWhite: that one sits on the permanently
+   dark call-to-action band on the front page and must stay white. */
+.pageHeading {
+  font-size: clamp(1.6rem, 3vw, 2.5rem);
+  letter-spacing: -0.05rem;
+  line-height: 1.1;
+  margin: 0;
+  color: #000000;
+  text-align: center;
+  padding: 2%;
+}
+
+/* Stands where the carousel used to, between the two light panels, so the
+   projects keep their position in the page even though they moved to their own
+   route. Same dark band, same rhythm. */
+.projectsCta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 2% 6% 1%;
+  text-align: center;
+}
+
+.projectsCtaText {
+  max-width: 46ch;
+  margin: 0 0 14px;
+  color: #c6c6c6;
+  font-size: clamp(0.9rem, 1vw, 1.05rem);
+  line-height: 1.6;
 }
 
 /* The one route into the personal page, sitting under the projects carousel. */
@@ -669,9 +738,10 @@
   flex-direction: column;
   padding: 20px;
   margin: 0 10px;
-  /* Same chrome vocabulary as .personal, but hard-coded — this block never
-     switches theme. */
-  border: 2px solid rgba(255, 255, 255, 0.35);
+  /* Same chrome vocabulary as .personal and .contactMe. Light is the base and
+     dark overrides further down, the way the rest of the stylesheet works —
+     possible now that the carousel only appears on its own page. */
+  border: 2px solid #ffffff;
   border-radius: 20px;
   background-color: rgba(0, 118, 165, 0.192);
   transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
@@ -679,7 +749,7 @@
 
 .projectCard:hover {
   transform: translateY(-4px);
-  border-color: #ffffff;
+  border-color: #1e4b5f;
 }
 
 .projectMeta {
@@ -694,8 +764,8 @@
   font-size: clamp(0.68rem, 0.75vw, 0.8rem);
   letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #c6c6c6;
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #1e4b5f;
+  border: 1px solid rgba(0, 118, 165, 0.4);
   border-radius: 999px;
   padding: 2px 10px;
 }
@@ -710,12 +780,14 @@
 
 .projectPeriod {
   font-size: clamp(0.68rem, 0.75vw, 0.8rem);
-  color: #9a9a9a;
+  color: #4a5b63;
 }
 
 .projectTitle {
   margin: 0 0 0.5rem;
   font-size: clamp(1.05rem, 1.4vw, 1.35rem);
+  /* Explicit: global.css colours h3 white for the dark front page. */
+  color: #000000;
   /* A long unbroken system name must wrap, not widen the card. */
   overflow-wrap: anywhere;
 }
@@ -724,6 +796,7 @@
   margin: 0;
   font-size: clamp(0.85rem, 0.9vw, 1rem);
   line-height: 1.45;
+  color: #1c2b33;
   overflow-wrap: anywhere;
 }
 
@@ -741,9 +814,9 @@
 .projectTag {
   font-size: clamp(0.68rem, 0.75vw, 0.8rem);
   line-height: 1.2;
-  color: #eaf6ff;
-  background-color: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #12303d;
+  background-color: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(0, 118, 165, 0.35);
   border-radius: 6px;
   padding: 3px 8px;
   white-space: nowrap;
@@ -785,7 +858,7 @@
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background-color: #ffffff;
+  background-color: #1e4b5f;
   opacity: 0.35;
   transition: opacity 0.2s ease;
 }
@@ -824,6 +897,71 @@
 :global(html[data-theme="dark"]) .threePointBreakBox,
 :global(html[data-theme="dark"]) .contactMe {
   background: #2d2d2d;
+}
+
+/* The projects page and its carousel in dark mode. Everything above is the
+   light default; this is the inversion. */
+:global(html[data-theme="dark"]) .flatPage {
+  background-color: #232020;
+}
+
+:global(html[data-theme="dark"]) .pageHeading,
+:global(html[data-theme="dark"]) .projectTitle {
+  color: #ffffff;
+}
+
+:global(html[data-theme="dark"]) .projectDescription {
+  color: #c6c6c6;
+}
+
+:global(html[data-theme="dark"]) .projectCard {
+  border-color: rgba(255, 255, 255, 0.35);
+}
+
+:global(html[data-theme="dark"]) .projectCard:hover {
+  border-color: rgba(var(--warm), 0.55);
+}
+
+:global(html[data-theme="dark"]) .projectCompany {
+  color: #c6c6c6;
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+:global(html[data-theme="dark"]) .projectCompanyCurrent {
+  color: #0b1b22;
+  border-color: #7fd4ff;
+}
+
+:global(html[data-theme="dark"]) .projectPeriod {
+  color: #9a9a9a;
+}
+
+:global(html[data-theme="dark"]) .projectTag {
+  color: #eaf6ff;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+:global(html[data-theme="dark"]) .projectsDiv :global(.slick-arrow) {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+:global(html[data-theme="dark"]) .projectsDiv :global(.slick-arrow):hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: #ffffff;
+}
+
+:global(html[data-theme="dark"]) .projectsDiv :global(.slick-arrow)::before {
+  color: #ffffff;
+}
+
+:global(html[data-theme="dark"]) .projectsDiv :global(.slick-dots li button)::before {
+  background-color: #ffffff;
+}
+
+:global(html[data-theme="dark"]) .flatPage .footerName {
+  color: #c6c6c6;
 }
 
 :global(html[data-theme="dark"]) .line {
@@ -876,7 +1014,8 @@
    --------------------------------------------------------------------------- */
 
 @media (max-width: 900px) {
-  .container {
+  .container,
+  .lowerBand {
     padding-left: 4%;
     padding-right: 4%;
   }
@@ -1088,21 +1227,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  background-color: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.3);
   border-radius: 50%;
   transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .projectsDiv :global(.slick-arrow):hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-color: #ffffff;
+  background-color: rgba(0, 0, 0, 0.14);
+  border-color: #1e4b5f;
 }
 
 .projectsDiv :global(.slick-arrow)::before {
   font-size: 20px;
   line-height: 1;
-  color: #ffffff;
+  color: #1a1a1a;
   opacity: 0.95;
 }
 

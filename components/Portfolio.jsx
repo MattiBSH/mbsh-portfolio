@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import styles from "../styles/theme.module.css";
-import ProjectCarousel from "./ProjectCarousel";
 import { SiteHead, Toolbar, SiteFooter } from "./SiteChrome";
 import {
   EMAIL,
@@ -79,6 +78,32 @@ export default function Portfolio({ content, meta, toggleTheme }) {
               </div>
             </div>
 
+          </div>
+        </main>
+      </div>
+
+      <div className={styles.edgeSpace}></div>
+
+      {/* Projects live on their own route now. This band sits exactly where
+          the carousel used to, so the work is still the first thing after the
+          skills rather than something a reader has to hunt for. */}
+      <div className={styles.projectsCta}>
+        <h2 className={styles.headlineWhite}>{content.projectsTitle}</h2>
+        <p className={styles.projectsCtaText}>{content.projectsTeaser}</p>
+        <Link className={styles.channelLink} href={content.projectsHref}>
+          {content.projectsLink} ({PROJECTS.length})
+        </Link>
+      </div>
+
+      <div className={styles.edgeSpace}></div>
+
+      {/* Second panel. The projects band is deliberately between the two:
+          the work is the reason anyone is on this page, so it should not sit
+          below the contact card where a reader may never scroll. */}
+      <div className={styles.lowerBand}>
+        <div className={styles.mainContent}>
+          <div className={styles.spaceAtStart}></div>
+
             {/* One timeline, not two. Work and study interleave in reality —
                 the PBA runs straight into the Dafolo internship — so splitting
                 them into separate sections hid the actual sequence. */}
@@ -148,21 +173,7 @@ export default function Portfolio({ content, meta, toggleTheme }) {
                 </p>
               </div>
             </div>
-          </div>
-        </main>
-      </div>
-
-      <div className={styles.edgeSpace}></div>
-
-      <div className={styles.projectsDiv}>
-        <h2 className={styles.headlineWhite}>{content.projectsTitle}</h2>
-        {/* PROJECTS is language-neutral; only the prose inside each entry and
-            the small labels come from the language block. */}
-        <ProjectCarousel
-          projects={PROJECTS}
-          lang={content.lang}
-          labels={content.projectLabels}
-        />
+        </div>
       </div>
 
       <div className={styles.edgeSpace}></div>

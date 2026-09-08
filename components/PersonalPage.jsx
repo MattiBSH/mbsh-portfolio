@@ -59,7 +59,7 @@ export default function PersonalPage({ content, meta, toggleTheme }) {
               />
 
               <Link className={styles.backLink} href={content.homeHref}>
-                ← {personal.backLabel}
+                ← {content.backLabel}
               </Link>
             </div>
           </div>

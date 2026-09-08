@@ -3,9 +3,10 @@ import Slider from "react-slick";
 import styles from "../styles/theme.module.css";
 import { COMPANIES } from "../lib/content";
 
-// The projects section always sits on the dark page background (global.css sets
-// html to #232020 and .projectsDiv adds no background of its own), so these
-// cards deliberately do not follow the light/dark toggle.
+// The cards follow the light/dark toggle like everything else. They did not
+// while the carousel lived on the front page's permanently dark band; now that
+// it has its own themed page (.flatPage), the styles are light-first with a
+// dark override, the same as the rest of the stylesheet.
 const ProjectCarousel = ({ projects, lang = "en", labels = {} }) => {
   const settings = {
     dots: true,

@@ -45,6 +45,7 @@ Node >= 18 (`.nvmrc` pins `18`).
 ```
 components/
   Portfolio.jsx      The portfolio page, rendered for whichever language it is given
+  ProjectsPage.jsx   The /projects route: the carousel, on its own page
   PersonalPage.jsx   The /personal route: nature reels, kept off the front page
   SiteChrome.jsx     SiteHead / Toolbar / SiteFooter, shared by both page types
   ProjectCarousel.jsx  react-slick wrapper for the projects section
@@ -63,6 +64,8 @@ pages/
   danish_index.jsx   Danish "/danish_index" — same wrapper, Danish content
   personal.jsx       English "/personal" — wrapper over PersonalPage
   danish_personal.jsx  Danish "/danish_personal"
+  projects.jsx       English "/projects" — wrapper over ProjectsPage
+  danish_projects.jsx  Danish "/danish_projects"
 tests/
   site.spec.js       Playwright integration suite, run on desktop + mobile
 styles/
@@ -171,6 +174,57 @@ Two locator traps worth remembering: `getByRole("heading", { name: /Matti
 Hansen/ })` also matches the footer's "Made by Matti Hansen", and counting
 `.slick-active` is unreliable because react-slick clones slides when `infinite`
 is on — measure slide width against `.slick-list` instead.
+
+## Page order
+
+Six routes now: the portfolio, projects and personal pages, each in two
+languages. `langForPath` matches `DANISH_PATHS` in `lib/theme.js`, and the
+pre-paint script in the same file has to agree with it — they are separate
+implementations of one rule, so change both together.
+
+The front page alternates panels: a light `.mainContent` panel (hero and
+skills), then a dark `.projectsCta` band, then a second light panel inside
+`.lowerBand` (background timeline and contact), then the personal teaser and
+footer.
+
+**The projects call to action stands exactly where the carousel used to**, at
+33% of the page height. The carousel itself was after the contact card at
+roughly 80%, where a reader could easily never reach it. A test fails if the
+call to action slips past halfway.
+
+Moving the carousel to its own route took **15 kB of JavaScript off the front
+page** (110 kB to 95 kB First Load) because react-slick now only loads on
+`/projects`.
+
+`ProjectsPage` keeps the `.projectsDiv` wrapper around the carousel. Every rule
+that makes it work — equal card heights, the dot row, arrow sizing, the hover
+headroom — is scoped to that class, so a different wrapper would silently break
+all of it.
+
+`/projects` is a **flat page**: `.flatPage` paints one colour edge to edge
+(`#f0faff` light, `#232020` dark) and forces the three bands that frame the
+front page to `transparent` — `.toolbarHolder`, `.edgeSpace`, and the `<footer>`
+that `global.css` paints `#f1f1f1` for every route. With no light content panel
+behind them they would read as unexplained strips. `.footerName` hardcodes
+`#202020` for that grey band, so `.flatPage` recolours it too.
+
+The `<h1>` there uses `.pageHeading`, not `.headlineWhite`. The latter sits on
+the front page's permanently dark `.projectsCta` band and has to stay white; a
+theme-aware version of it would paint that heading black on black.
+
+**The carousel follows the theme now.** It used to be hardcoded dark, which was
+only safe while it sat on the front page's dark band. On its own page it uses
+the normal convention — light as the base, a `html[data-theme="dark"]` block
+below. Watch the specificity trap when adding to that block: the current
+employer's filled badge needed its own dark rule because
+`html[data-theme="dark"] .projectCompany` at (0,2,1) beats
+`.projectCompanyCurrent` at (0,1,0), leaving grey text on a light blue pill.
+
+`.lowerBand` is `.container` without the `min-height: 100vh`; that exists to
+give the hero a full screen and would leave a screenful of empty grey here. The
+second panel opens with `.spaceAtStart`, which is why `.education` no longer
+carries a `margin-top` — the margin would collapse straight through the panel's
+top edge.
 
 ## Accessibility and semantics
 

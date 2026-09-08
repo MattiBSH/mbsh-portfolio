@@ -138,6 +138,30 @@ test.describe("background timeline", () => {
     expect(kinds["dafolo-dev"]).toBeNull();
   });
 
+  test("the projects call to action sits high, above the contact card", async ({ page }) => {
+    await page.goto("/");
+    // The carousel moved to /projects, but the invitation has to stay where the
+    // carousel was: above the contact card, not buried at the bottom.
+    const pos = await page.evaluate(() => {
+      const y = (text) => {
+        const h = [...document.querySelectorAll("h2")].find(
+          (e) => e.textContent.trim() === text
+        );
+        return h ? h.getBoundingClientRect().top + window.scrollY : -1;
+      };
+      return {
+        projects: y("Projects"),
+        background: y("Background"),
+        contact: y("Contact me"),
+        pageHeight: document.body.scrollHeight,
+      };
+    });
+    expect(pos.projects).toBeGreaterThan(0);
+    expect(pos.projects).toBeLessThan(pos.background);
+    expect(pos.projects).toBeLessThan(pos.contact);
+    expect(pos.projects / pos.pageHeight).toBeLessThan(0.5);
+  });
+
   test("the merged timeline runs newest to oldest", async ({ page }) => {
     await page.goto("/");
     // Work and study share one timeline now, so the ordering is the only thing
@@ -266,7 +290,14 @@ test.describe("regressions from the audit", () => {
     // WCAG 2.5.8, and what Lighthouse's "Touch targets do not have sufficient
     // size or spacing" audit reports. slick ships 20x20 arrows and 20x20 dots,
     // so this fails again the moment those overrides are dropped.
-    for (const route of ["/", "/danish_index", "/personal", "/danish_personal"]) {
+    for (const route of [
+      "/",
+      "/danish_index",
+      "/personal",
+      "/danish_personal",
+      "/projects",
+      "/danish_projects",
+    ]) {
       await page.goto(route);
       const undersized = await page.evaluate(() => {
         const out = [];
@@ -297,7 +328,14 @@ test.describe("regressions from the audit", () => {
     page.on("request", (r) => {
       if (/\.(woff2?|ttf|eot|otf)(\?|$)/i.test(r.url())) fonts.push(r.url());
     });
-    for (const route of ["/", "/danish_index", "/personal", "/danish_personal"]) {
+    for (const route of [
+      "/",
+      "/danish_index",
+      "/personal",
+      "/danish_personal",
+      "/projects",
+      "/danish_projects",
+    ]) {
       await page.goto(route);
       await page.waitForLoadState("networkidle");
     }
@@ -306,24 +344,43 @@ test.describe("regressions from the audit", () => {
 
   test("carousel arrows and dots survive without the icon font", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "mobile", "arrows are desktop-sized here");
-    await page.goto("/");
+    await page.goto("/projects");
     // Drawn in CSS now, so assert the shapes rather than a glyph.
     const arrow = await page.locator(".slick-prev").boundingBox();
     expect(Math.round(arrow.width)).toBe(44);
     expect(Math.round(arrow.height)).toBe(44);
 
-    const dot = await page.locator(".slick-dots li button").first().evaluate((el) => {
-      const cs = getComputedStyle(el, "::before");
-      return { w: cs.width, r: cs.borderRadius, bg: cs.backgroundColor };
-    });
-    expect(dot.w).toBe("10px");
-    expect(dot.bg).toContain("255, 255, 255");
+    const readDot = () =>
+      page.locator(".slick-dots li button").first().evaluate((el) => {
+        const cs = getComputedStyle(el, "::before");
+        return { w: cs.width, r: cs.borderRadius, bg: cs.backgroundColor };
+      });
+
+    // A painted shape, not a glyph: it has a size, it is round, and it is
+    // filled. The fill follows the theme now that the page has a light mode,
+    // so assert both are opaque and that they actually differ.
+    const light = await readDot();
+    expect(light.w).toBe("10px");
+    expect(light.r).toBe("50%");
+    expect(light.bg).not.toContain("rgba(0, 0, 0, 0)");
+
+    await page.getByRole("button", { name: "Toggle dark mode" }).click();
+    const dark = await readDot();
+    expect(dark.bg).toContain("255, 255, 255");
+    expect(dark.bg).not.toBe(light.bg);
   });
 
   test("no em dashes in the rendered copy", async ({ page }) => {
     // They read as a tell for machine-written text. Hyphens and ordinary
     // sentence breaks instead; date ranges use a plain hyphen.
-    for (const route of ["/", "/danish_index", "/personal", "/danish_personal"]) {
+    for (const route of [
+      "/",
+      "/danish_index",
+      "/personal",
+      "/danish_personal",
+      "/projects",
+      "/danish_projects",
+    ]) {
       await page.goto(route);
       const text = await page.evaluate(() => document.body.innerText);
       expect(text, route).not.toContain("—"); // em dash
@@ -752,7 +809,14 @@ test.describe("layout", () => {
     expect(box.width).toBeGreaterThan(50);
   });
 
-  const ROUTES = ["/", "/danish_index", "/personal", "/danish_personal"];
+  const ROUTES = [
+      "/",
+      "/danish_index",
+      "/personal",
+      "/danish_personal",
+      "/projects",
+      "/danish_projects",
+    ];
 
   test("no route scrolls horizontally", async ({ page }) => {
     for (const route of ROUTES) {
@@ -847,15 +911,109 @@ const projectCopy = (page) =>
     )
   );
 
+test.describe("projects page routing", () => {
+  test("the front page no longer renders the carousel", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.locator(".slick-slider")).toHaveCount(0);
+    await expect(page.locator("[data-project-id]")).toHaveCount(0);
+  });
+
+  test("the call to action leads to the projects page", async ({ page }) => {
+    await page.goto("/");
+    const cta = page.getByRole("link", { name: /See the projects/ });
+    await expect(cta).toBeVisible();
+    // The count tells a reader whether it is worth the click.
+    expect(await cta.textContent()).toMatch(/\(\d+\)/);
+    await cta.click();
+    await expect(page).toHaveURL(/\/projects$/);
+    await expect(page.locator("h1")).toContainText("Projects");
+  });
+
+  test("the projects page is one flat colour, with no framing bands", async ({ page }) => {
+    await page.goto("/projects");
+    // .toolbarHolder and .edgeSpace paint #2d2d2d to sit flush against the
+    // light panel on the front page. With no panel here they would read as
+    // unexplained strips, so .flatPage makes them transparent and lets the
+    // page colour through. Either is fine; a third colour is not.
+    const read = () =>
+      page.evaluate(() => {
+        const page_ = document.querySelector("[class*='flatPage']");
+        const others = new Set();
+        document
+          .querySelectorAll("[class*='toolbarHolder'], [class*='edgeSpace']")
+          .forEach((el) => others.add(getComputedStyle(el).backgroundColor));
+        return {
+          page: getComputedStyle(page_).backgroundColor,
+          others: [...others],
+        };
+      });
+
+    const light = await read();
+    for (const shade of light.others) {
+      expect([light.page, "rgba(0, 0, 0, 0)"]).toContain(shade);
+    }
+
+    // And the same once the theme flips, which is the whole point of the page
+    // no longer being hardcoded dark.
+    await page.getByRole("button", { name: "Toggle dark mode" }).click();
+    const dark = await read();
+    expect(dark.page).not.toBe(light.page);
+    for (const shade of dark.others) {
+      expect([dark.page, "rgba(0, 0, 0, 0)"]).toContain(shade);
+    }
+  });
+
+  test("the back link returns to the portfolio", async ({ page }) => {
+    await page.goto("/projects");
+    await page.getByRole("link", { name: /Back to the portfolio/ }).click();
+    await expect(page).toHaveURL(/localhost:3100\/$/);
+  });
+
+  test("the language switch stays on the projects page", async ({ page }) => {
+    await page.goto("/projects");
+    await page.getByRole("link", { name: "Switch to Danish" }).click();
+    await expect(page).toHaveURL(/\/danish_projects$/);
+    await expect(page.locator("h1")).toContainText("Projekter");
+    await page.getByRole("link", { name: "Skift til engelsk" }).click();
+    await expect(page).toHaveURL(/\/projects$/);
+  });
+
+  test("both project routes declare the right language and their own metadata", async ({ page }) => {
+    for (const [route, lang] of [["/projects", "en"], ["/danish_projects", "da"]]) {
+      const res = await page.request.get(route);
+      const html = await res.text();
+      expect(html.match(/<html[^>]*>/)[0], route).toContain(`lang="${lang}"`);
+      await page.goto(route);
+      const desc = await page
+        .locator('meta[name="description"]')
+        .first()
+        .getAttribute("content");
+      // Must differ from the portfolio's, or both share one link preview.
+      expect(desc, route).toContain(lang === "da" ? "Sagsbehandlingssystemer" : "Case management systems");
+      expect(await page.getAttribute('link[rel="canonical"]', "href"), route).toContain(route);
+    }
+  });
+
+  test("the theme survives moving to the projects page", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Toggle dark mode" }).click();
+    await page.getByRole("link", { name: /See the projects/ }).click();
+    await expect(page).toHaveURL(/\/projects$/);
+    expect(
+      await page.evaluate(() => document.documentElement.getAttribute("data-theme"))
+    ).toBe("dark");
+  });
+});
+
 test.describe("projects carousel", () => {
   test("shows project cards", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/projects");
     const copy = await projectCopy(page);
     expect(copy["ai-gdpr"].title).toContain("AI GDPR");
   });
 
   test("every card has a title, a description and tech tags", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/projects");
     const copy = await projectCopy(page);
     const ids = Object.keys(copy);
     expect(ids.length).toBeGreaterThanOrEqual(6);
@@ -868,14 +1026,14 @@ test.describe("projects carousel", () => {
   });
 
   test("project ids are unique", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/projects");
     const ids = await projectIds(page);
     // Duplicates would collide as React keys. Titles can repeat; ids must not.
     expect(new Set(ids).size).toBe(ids.length);
   });
 
   test("the current employer is badged differently from earlier roles", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/projects");
     const badgeBg = (sel) =>
       page
         .locator(sel)
@@ -890,16 +1048,16 @@ test.describe("projects carousel", () => {
   });
 
   test("project copy is translated on the Danish page", async ({ page }) => {
-    await page.goto("/danish_index");
+    await page.goto("/danish_projects");
     const copy = await projectCopy(page);
     expect(copy["nemsoeg"].title).toBe("Nemsøg");
     expect(copy["nemsoeg"].description).toContain("matrikler");
   });
 
   test("both languages show the same projects, none fell back to English", async ({ page }) => {
-    await page.goto("/");
+    await page.goto("/projects");
     const en = await projectCopy(page);
-    await page.goto("/danish_index");
+    await page.goto("/danish_projects");
     const da = await projectCopy(page);
 
     // One array feeds both pages, so a difference here means the component
@@ -920,7 +1078,7 @@ test.describe("projects carousel", () => {
   });
 
   test("the dot row does not grow one dot per project", async ({ page }, testInfo) => {
-    await page.goto("/");
+    await page.goto("/projects");
     const dots = await page.locator(".slick-dots li").count();
     const projects = (await projectIds(page)).length;
     const perPage = testInfo.project.name === "mobile" ? 1 : 3;
@@ -929,7 +1087,7 @@ test.describe("projects carousel", () => {
 
   test("a hovered card is not clipped by the carousel viewport", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "mobile", "no hover on touch");
-    await page.goto("/");
+    await page.goto("/projects");
     const card = page.locator(".slick-slide.slick-active article").first();
     await card.scrollIntoViewIfNeeded();
     await card.hover();
@@ -949,7 +1107,7 @@ test.describe("projects carousel", () => {
   });
 
   test("adapts the number of visible slides to the viewport", async ({ page }, testInfo) => {
-    await page.goto("/");
+    await page.goto("/projects");
     const list = page.locator(".slick-list");
     await expect(list).toBeVisible();
 
