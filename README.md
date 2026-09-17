@@ -3,6 +3,8 @@
 Personal portfolio site for Matti Hansen, a software developer working on IT
 solutions for Danish municipalities and regions.
 
+**Live at [mattihansen.com](https://mattihansen.com).**
+
 Built with [Next.js](https://nextjs.org) (Pages Router) and CSS Modules. Every
 page exists in English and Danish, with a light/dark theme that persists across
 pages and reloads.

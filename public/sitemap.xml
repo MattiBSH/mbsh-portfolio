@@ -12,45 +12,45 @@
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
 
   <url>
-    <loc>https://mbsh-portfolio.vercel.app</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://mbsh-portfolio.vercel.app"/>
-    <xhtml:link rel="alternate" hreflang="da" href="https://mbsh-portfolio.vercel.app/danish_index"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://mbsh-portfolio.vercel.app"/>
+    <loc>https://mattihansen.com</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mattihansen.com"/>
+    <xhtml:link rel="alternate" hreflang="da" href="https://mattihansen.com/danish_index"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mattihansen.com"/>
   </url>
 
   <url>
-    <loc>https://mbsh-portfolio.vercel.app/danish_index</loc>
-    <xhtml:link rel="alternate" hreflang="da" href="https://mbsh-portfolio.vercel.app/danish_index"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://mbsh-portfolio.vercel.app"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://mbsh-portfolio.vercel.app"/>
+    <loc>https://mattihansen.com/danish_index</loc>
+    <xhtml:link rel="alternate" hreflang="da" href="https://mattihansen.com/danish_index"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mattihansen.com"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mattihansen.com"/>
   </url>
 
   <url>
-    <loc>https://mbsh-portfolio.vercel.app/projects</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://mbsh-portfolio.vercel.app/projects"/>
-    <xhtml:link rel="alternate" hreflang="da" href="https://mbsh-portfolio.vercel.app/danish_projects"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://mbsh-portfolio.vercel.app/projects"/>
+    <loc>https://mattihansen.com/projects</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mattihansen.com/projects"/>
+    <xhtml:link rel="alternate" hreflang="da" href="https://mattihansen.com/danish_projects"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mattihansen.com/projects"/>
   </url>
 
   <url>
-    <loc>https://mbsh-portfolio.vercel.app/danish_projects</loc>
-    <xhtml:link rel="alternate" hreflang="da" href="https://mbsh-portfolio.vercel.app/danish_projects"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://mbsh-portfolio.vercel.app/projects"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://mbsh-portfolio.vercel.app/projects"/>
+    <loc>https://mattihansen.com/danish_projects</loc>
+    <xhtml:link rel="alternate" hreflang="da" href="https://mattihansen.com/danish_projects"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mattihansen.com/projects"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mattihansen.com/projects"/>
   </url>
 
   <url>
-    <loc>https://mbsh-portfolio.vercel.app/personal</loc>
-    <xhtml:link rel="alternate" hreflang="en" href="https://mbsh-portfolio.vercel.app/personal"/>
-    <xhtml:link rel="alternate" hreflang="da" href="https://mbsh-portfolio.vercel.app/danish_personal"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://mbsh-portfolio.vercel.app/personal"/>
+    <loc>https://mattihansen.com/personal</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mattihansen.com/personal"/>
+    <xhtml:link rel="alternate" hreflang="da" href="https://mattihansen.com/danish_personal"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mattihansen.com/personal"/>
   </url>
 
   <url>
-    <loc>https://mbsh-portfolio.vercel.app/danish_personal</loc>
-    <xhtml:link rel="alternate" hreflang="da" href="https://mbsh-portfolio.vercel.app/danish_personal"/>
-    <xhtml:link rel="alternate" hreflang="en" href="https://mbsh-portfolio.vercel.app/personal"/>
-    <xhtml:link rel="alternate" hreflang="x-default" href="https://mbsh-portfolio.vercel.app/personal"/>
+    <loc>https://mattihansen.com/danish_personal</loc>
+    <xhtml:link rel="alternate" hreflang="da" href="https://mattihansen.com/danish_personal"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mattihansen.com/personal"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mattihansen.com/personal"/>
   </url>
 
 </urlset>

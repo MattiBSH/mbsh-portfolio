@@ -320,7 +320,11 @@ and `next` is pinned to an exact version rather than `"latest"`.
 
 ## Deployment
 
-The site is deployed on Vercel at **https://mbsh-portfolio.vercel.app**.
+The site is deployed on Vercel at **https://mattihansen.com**, the apex with
+no `www`. Vercel 308-redirects `www.mattihansen.com` to it, and the original
+`mbsh-portfolio.vercel.app` still resolves. Only the apex may appear in
+`SITE_URL`, the sitemap or the canonical tags: pointing any of them at a host
+that redirects is what splits one page into two in a crawler's index.
 
 `SITE_URL` in `lib/site.js` must match that domain: Open Graph images have to be
 absolute URLs, and a mismatch means link previews render with no image.

@@ -223,9 +223,9 @@ test.describe("social preview metadata", () => {
     // OG images must be absolute AND on the deployed domain, or scrapers
     // render the preview without an image.
     const image = await content('meta[property="og:image"]');
-    expect(image).toBe("https://mbsh-portfolio.vercel.app/images/og.jpg");
+    expect(image).toBe("https://mattihansen.com/images/og.jpg");
     expect(await content('meta[property="og:url"]')).toBe(
-      "https://mbsh-portfolio.vercel.app"
+      "https://mattihansen.com"
     );
   });
 
@@ -400,6 +400,12 @@ test.describe("regressions from the audit", () => {
   });
 
   test("every route declares a canonical and hreflang alternates", async ({ page }) => {
+    // Exact URLs, not substrings. This used to assert `toContain("vercel.app")`
+    // for the front page, which meant a domain change left the test passing
+    // against the wrong host until the string happened to stop matching.
+    const ORIGIN = "https://mattihansen.com";
+    const abs = (p) => (p === "/" ? ORIGIN : ORIGIN + p);
+
     for (const [route, lang, alt] of [
       ["/", "en", "/danish_index"],
       ["/danish_index", "da", "/"],
@@ -408,12 +414,12 @@ test.describe("regressions from the audit", () => {
     ]) {
       await page.goto(route);
       const canonical = await page.getAttribute('link[rel="canonical"]', "href");
-      expect(canonical, route).toContain("mbsh-portfolio.vercel.app");
+      expect(canonical, route).toBe(abs(route));
       const other = await page.getAttribute(
         `link[rel="alternate"][hreflang="${lang === "en" ? "da" : "en"}"]`,
         "href"
       );
-      expect(other, route).toContain(alt === "/" ? "vercel.app" : alt);
+      expect(other, route).toBe(abs(alt));
     }
   });
 
@@ -1127,7 +1133,7 @@ test.describe("crawler files", () => {
   // Hardcoded on purpose, the same way the Open Graph tests are: SITE_URL now
   // appears in lib/site.js, public/sitemap.xml, public/robots.txt and here, so
   // a domain change has to be made deliberately in all four.
-  const ORIGIN = "https://mbsh-portfolio.vercel.app";
+  const ORIGIN = "https://mattihansen.com";
 
   const ALL_ROUTES = [
     "/",
@@ -1177,7 +1183,7 @@ test.describe("crawler files", () => {
 });
 
 test.describe("structured data", () => {
-  const ORIGIN = "https://mbsh-portfolio.vercel.app";
+  const ORIGIN = "https://mattihansen.com";
 
   const personOn = async (page, route) => {
     await page.goto(route);
