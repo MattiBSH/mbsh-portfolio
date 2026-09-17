@@ -35,8 +35,8 @@ from the app: `sharp` requires >= 20.9.0 and `@playwright/test` requires >= 20.
 
 ## Stack
 
-- **Next.js 14.2.5** (`next: "latest"` in package.json — the resolved version can
-  drift), React 18.2, **Pages Router** (no `app/` directory, no TypeScript)
+- **Next.js 14.2.5** (pinned exactly in package.json, not `"latest"` — keep it
+  that way), React 18.2, **Pages Router** (no `app/` directory, no TypeScript)
 - **react-slick** + **slick-carousel** — the projects carousel
 - **sharp** — production image optimisation for `next/image`
 - CSS Modules; no Tailwind, no CSS-in-JS
@@ -56,7 +56,8 @@ components/
 lib/
   content.js         All page copy, as CONTENT.en / CONTENT.da, plus the
                      EMAIL / LINKEDIN_URL / YOUTUBE_URL constants
-  site.js            SITE_URL, OG image, per-language <head> metadata
+  site.js            SITE_URL, OG image, per-language <head> metadata, the
+                     Person structured data
   theme.js           data-theme handling, the pre-paint script, lang mapping
   effects.js         The "Random effect" button: run it, and clear what it painted
 pages/
@@ -73,7 +74,8 @@ tests/
 styles/
   global.css         Imports slick CSS, sets base typography and dark page bg
   theme.module.css   Both themes in one file (see Theming below)
-public/images/       profile.png, image.png
+public/images/       profile.png and og.jpg (the 1200x630 social crop)
+public/              robots.txt and sitemap.xml, both written by hand
 ```
 
 ## How the page works
@@ -96,8 +98,11 @@ background behind it.
 the theme survives navigation between the two language pages. It is persisted to
 `localStorage` under the key `darkMode`, read back in a `useEffect` (not in the
 `useState` initializer, which would break SSR). Pages are prerendered in light
-mode, so a visitor who chose dark sees a brief light flash on first paint —
-removing that needs a blocking inline script in `_document`.
+mode, so on its own that would flash light for a visitor who chose dark; the
+blocking inline script in `_document` is what prevents it, by setting
+`data-theme` from `localStorage` before the first paint. A test asserts the
+attribute is already correct at `domcontentloaded`, so removing the script or
+deferring it fails the suite.
 
 So **any class added to one theme must be added to the other**, or that element
 silently loses all styling in the other mode. The two files are ~90% identical;
@@ -303,20 +308,46 @@ number looks wrong, re-run with real throttling before optimising against it.
 
 ## Known issues
 
-- The Open Graph image is `profile.png`, which is 1127x774 (roughly 3:2).
-  Scrapers prefer 1200x630; the current image will be letterboxed or cropped in
-  some previews. Not broken, just not ideal.
-- `next` is pinned to `"latest"` in package.json, so the resolved version drifts
-  between installs. Worth pinning to the version you have tested against.
+- The timeline dates were **inferred** from the project years and have not been
+  confirmed against the LinkedIn profile. See the timeline section above: a
+  portfolio that contradicts a CV is worse than one that says nothing.
+- `profile.png` is 1.6 MB in the repository. `next/image` serves a resized AVIF
+  so no visitor downloads it, but a clone does.
+
+Two entries that used to sit here are resolved: the Open Graph image is now a
+purpose-made 1200x630 `og.jpg` (`profile.png` was 1127x774 and got letterboxed),
+and `next` is pinned to an exact version rather than `"latest"`.
 
 ## Deployment
 
 The site is deployed on Vercel at **https://mbsh-portfolio.vercel.app**.
 
 `SITE_URL` in `lib/site.js` must match that domain: Open Graph images have to be
-absolute URLs, and a mismatch means link previews render with no image. The test
-suite asserts the exact value, so changing the domain means changing it in both
-`lib/site.js` and `tests/site.spec.js`.
+absolute URLs, and a mismatch means link previews render with no image.
+
+**The domain is written out in four places**, so changing it means changing all
+four: `lib/site.js`, `public/sitemap.xml`, `public/robots.txt` and
+`tests/site.spec.js` (which asserts the literal value rather than importing the
+constant, so a typo in the constant cannot make the test agree with itself).
+
+## Crawlers and structured data
+
+`SiteHead` in `SiteChrome.jsx` emits canonical, `hreflang` alternates and
+`x-default` for every route. `public/sitemap.xml` repeats the same pairings by
+hand and `public/robots.txt` points at it. They are two implementations of one
+rule, the same way `langForPath` and the pre-paint script are, so change them
+together. A test walks all six routes and asserts each `<loc>` is byte-identical
+to the canonical that page serves. That is what catches a trailing-slash
+mismatch on the front page, which canonicalises to the bare origin rather than
+`origin + "/"`.
+
+`personJsonLd` in `lib/site.js` adds one `Person` node per page, translated only
+in `jobTitle`. The employer is read out of `COMPANIES` rather than written again,
+so it cannot disagree with the badge on the project cards. **Keep it to facts the
+page already states.** Structured data that claims more than the visible page is
+what Google calls spammy markup, and the penalty lands on the whole domain. The
+JSON is escaped on the way out (`<` becomes `<`) so a future string in
+`lib/content.js` cannot close the script tag early.
 
 ## Project content and confidentiality
 
@@ -446,5 +477,4 @@ This applies to page copy only. Code comments and this file are unaffected.
   file you are editing already uses rather than renaming.
 - Images go through `next/image` with explicit `width`/`height`, sourced from
   `/images/`.
-- The site is deployed on Vercel (`public/vercel.svg` is left over from the
-  starter); there is no deploy script in the repo.
+- The site is deployed on Vercel; there is no deploy script in the repo.

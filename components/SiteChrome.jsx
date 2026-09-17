@@ -2,7 +2,13 @@ import Head from "next/head";
 import Link from "next/link";
 import styles from "../styles/theme.module.css";
 import { SunIcon, MoonIcon, FlagDK, FlagGB } from "./Icons";
-import { OG_IMAGE, OG_IMAGE_WIDTH, OG_IMAGE_HEIGHT, SITE_URL } from "../lib/site";
+import {
+  OG_IMAGE,
+  OG_IMAGE_WIDTH,
+  OG_IMAGE_HEIGHT,
+  SITE_URL,
+  personJsonLd,
+} from "../lib/site";
 import { runRandomEffect, clearRandomColors } from "../lib/effects";
 
 // Chrome shared by every page: the <head> tags, the toolbar, and the footer.
@@ -59,6 +65,16 @@ export function SiteHead({ meta, path = "", altPath, lang = "en", preconnect = [
       {preconnect.map((href) => (
         <link rel="preconnect" href={href} key={href} crossOrigin="anonymous" />
       ))}
+      {/* Person structured data, identical on every route apart from the
+          translated job title. Escaping "<" is what stops a future string in
+          lib/content.js from closing this script tag early. */}
+      <script
+        type="application/ld+json"
+        key="person-jsonld"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(personJsonLd(lang)).replace(/</g, "\u003c"),
+        }}
+      />
       <link rel="icon" href="/favicon.ico" />
     </Head>
   );

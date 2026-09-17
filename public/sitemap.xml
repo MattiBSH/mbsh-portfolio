@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Static sitemap for the six routes under pages/ (three page types, each in
+  English and Danish). The origin must match SITE_URL in lib/site.js, and the
+  xhtml:link alternates mirror exactly what SiteHead emits for each route:
+  every URL declares itself, its other-language twin, and the English page as
+  x-default. No lastmod: nothing here tracks a real modification date, and a
+  guessed one is worse than none.
+-->
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+
+  <url>
+    <loc>https://mbsh-portfolio.vercel.app</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mbsh-portfolio.vercel.app"/>
+    <xhtml:link rel="alternate" hreflang="da" href="https://mbsh-portfolio.vercel.app/danish_index"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mbsh-portfolio.vercel.app"/>
+  </url>
+
+  <url>
+    <loc>https://mbsh-portfolio.vercel.app/danish_index</loc>
+    <xhtml:link rel="alternate" hreflang="da" href="https://mbsh-portfolio.vercel.app/danish_index"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mbsh-portfolio.vercel.app"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mbsh-portfolio.vercel.app"/>
+  </url>
+
+  <url>
+    <loc>https://mbsh-portfolio.vercel.app/projects</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mbsh-portfolio.vercel.app/projects"/>
+    <xhtml:link rel="alternate" hreflang="da" href="https://mbsh-portfolio.vercel.app/danish_projects"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mbsh-portfolio.vercel.app/projects"/>
+  </url>
+
+  <url>
+    <loc>https://mbsh-portfolio.vercel.app/danish_projects</loc>
+    <xhtml:link rel="alternate" hreflang="da" href="https://mbsh-portfolio.vercel.app/danish_projects"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mbsh-portfolio.vercel.app/projects"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mbsh-portfolio.vercel.app/projects"/>
+  </url>
+
+  <url>
+    <loc>https://mbsh-portfolio.vercel.app/personal</loc>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mbsh-portfolio.vercel.app/personal"/>
+    <xhtml:link rel="alternate" hreflang="da" href="https://mbsh-portfolio.vercel.app/danish_personal"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mbsh-portfolio.vercel.app/personal"/>
+  </url>
+
+  <url>
+    <loc>https://mbsh-portfolio.vercel.app/danish_personal</loc>
+    <xhtml:link rel="alternate" hreflang="da" href="https://mbsh-portfolio.vercel.app/danish_personal"/>
+    <xhtml:link rel="alternate" hreflang="en" href="https://mbsh-portfolio.vercel.app/personal"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://mbsh-portfolio.vercel.app/personal"/>
+  </url>
+
+</urlset>

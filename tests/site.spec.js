@@ -1122,3 +1122,116 @@ test.describe("projects carousel", () => {
     expect(Math.abs(ratio - expected)).toBeLessThan(0.08);
   });
 });
+
+test.describe("crawler files", () => {
+  // Hardcoded on purpose, the same way the Open Graph tests are: SITE_URL now
+  // appears in lib/site.js, public/sitemap.xml, public/robots.txt and here, so
+  // a domain change has to be made deliberately in all four.
+  const ORIGIN = "https://mbsh-portfolio.vercel.app";
+
+  const ALL_ROUTES = [
+    "/",
+    "/danish_index",
+    "/projects",
+    "/danish_projects",
+    "/personal",
+    "/danish_personal",
+  ];
+
+  test("robots.txt is served and points at the sitemap", async ({ page }) => {
+    const res = await page.request.get("/robots.txt");
+    expect(res.status()).toBe(200);
+    const body = await res.text();
+    expect(body).toContain("User-agent: *");
+    expect(body).toContain(`Sitemap: ${ORIGIN}/sitemap.xml`);
+    // A stray "Disallow: /" here would quietly delist the whole site.
+    expect(body).not.toMatch(/^Disallow:\s*\/\s*$/m);
+  });
+
+  test("sitemap.xml lists every route and nothing else", async ({ page }) => {
+    const res = await page.request.get("/sitemap.xml");
+    expect(res.status()).toBe(200);
+    expect(res.headers()["content-type"]).toMatch(/xml/);
+
+    const xml = await res.text();
+    const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    const expected = ALL_ROUTES.map((r) => (r === "/" ? ORIGIN : ORIGIN + r));
+
+    expect(locs.sort()).toEqual(expected.sort());
+  });
+
+  test("each sitemap URL is byte-identical to that page's canonical", async ({
+    page,
+  }) => {
+    // The two are separate implementations of one rule. A trailing slash on the
+    // front page in one and not the other is exactly the mismatch that makes a
+    // crawler treat them as two pages.
+    const xml = await (await page.request.get("/sitemap.xml")).text();
+
+    for (const route of ALL_ROUTES) {
+      await page.goto(route);
+      const canonical = await page.getAttribute('link[rel="canonical"]', "href");
+      expect(xml, route).toContain(`<loc>${canonical}</loc>`);
+    }
+  });
+});
+
+test.describe("structured data", () => {
+  const ORIGIN = "https://mbsh-portfolio.vercel.app";
+
+  const personOn = async (page, route) => {
+    await page.goto(route);
+    const blocks = await page.$$eval(
+      'script[type="application/ld+json"]',
+      (els) => els.map((el) => el.textContent)
+    );
+    // One node per page. Two would let them disagree about the same person.
+    expect(blocks.length, route).toBe(1);
+    return JSON.parse(blocks[0]);
+  };
+
+  test("every route carries one Person node", async ({ page }) => {
+    for (const route of [
+      "/",
+      "/danish_index",
+      "/projects",
+      "/danish_projects",
+      "/personal",
+      "/danish_personal",
+    ]) {
+      const person = await personOn(page, route);
+      expect(person["@context"], route).toBe("https://schema.org");
+      expect(person["@type"], route).toBe("Person");
+      expect(person.name, route).toBe("Matti Hansen");
+      expect(person.url, route).toBe(ORIGIN);
+    }
+  });
+
+  test("the job title is translated and the employer matches the badge", async ({
+    page,
+  }) => {
+    expect((await personOn(page, "/")).jobTitle).toBe("Software Developer");
+    expect((await personOn(page, "/danish_index")).jobTitle).toBe(
+      "Softwareudvikler"
+    );
+    // Derived from COMPANIES, so this is the same name the current-employer
+    // badge on the project cards renders.
+    expect((await personOn(page, "/")).worksFor).toEqual({
+      "@type": "Organization",
+      name: "Dafolo",
+    });
+  });
+
+  test("sameAs points only at profiles the page already links", async ({
+    page,
+  }) => {
+    const person = await personOn(page, "/");
+    expect(person.sameAs).toContain(
+      "https://www.linkedin.com/in/matti-hansen-74a454109/"
+    );
+    expect(person.sameAs).toContain(
+      "https://www.youtube.com/@TheRealDanishNature"
+    );
+    expect(person.sameAs.length).toBe(2);
+  });
+});
