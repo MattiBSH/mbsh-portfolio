@@ -39,8 +39,8 @@ test.describe("page loads", () => {
 
   test("the email address is a working mailto link", async ({ page }) => {
     await page.goto("/");
-    const link = page.getByRole("link", { name: "mattibenhansen@gmail.com" });
-    await expect(link).toHaveAttribute("href", "mailto:mattibenhansen@gmail.com");
+    const link = page.getByRole("link", { name: "kontakt@mattihansen.com" });
+    await expect(link).toHaveAttribute("href", "mailto:kontakt@mattihansen.com");
   });
 
   test("profile image loads and is not broken", async ({ page }) => {
