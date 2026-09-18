@@ -350,7 +350,8 @@ in `jobTitle`. The employer is read out of `COMPANIES` rather than written again
 so it cannot disagree with the badge on the project cards. **Keep it to facts the
 page already states.** Structured data that claims more than the visible page is
 what Google calls spammy markup, and the penalty lands on the whole domain. The
-JSON is escaped on the way out (`<` becomes `<`) so a future string in
+JSON is escaped on the way out (`<` becomes a backslash-u003c escape) so a
+future string in
 `lib/content.js` cannot close the script tag early.
 
 ## Project content and confidentiality
