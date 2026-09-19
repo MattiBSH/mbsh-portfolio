@@ -24,7 +24,26 @@
 .mainContent{
   padding-left: 10%;
   padding-right: 10%;
+  /* background-color stays the flat value: it is what the contrast and theme
+     tests read, and it is what shows if background-image fails to paint. The
+     clouds are layered on top of it.
+
+     Four layers, back to front: a vertical sky wash, a blue haze rising from the
+     bottom edge, then two soft white blooms. All CSS gradients, so this costs no
+     request and nothing to decode. */
   background-color: #f0faff;
+  background-image:
+    /* Cloud blooms. Tighter falloff than a plain haze (opaque core out to
+       ~30%, gone by ~70%) is what makes them read as clouds rather than as a
+       gradient that lost its nerve. */
+    radial-gradient(40% 32% at 12% 14%, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.9) 36%, rgba(255, 255, 255, 0) 74%),
+    radial-gradient(32% 26% at 27% 7%, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.78) 36%, rgba(255, 255, 255, 0) 76%),
+    radial-gradient(44% 32% at 84% 11%, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0.86) 34%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(26% 20% at 68% 22%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0) 72%),
+    radial-gradient(46% 26% at 50% 96%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 70%),
+    /* The sky they sit in: deeper blue at the top so the white has something to
+       be white against. */
+    linear-gradient(180deg, #b7dff9 0%, #cbe9fc 32%, #e0f3ff 66%, #f5fbff 100%);
   border-radius: 25px;
 }
 
@@ -179,9 +198,12 @@
   border-radius: 40%;
 }
 
-.projectsDiv{
-  padding-left: 20%;
-  padding-right: 20%;
+.projectsDiv {
+  /* A measure, not a percentage. 20% each side left ~196px of text per card on
+     a 1280 laptop and wasted 768px on a 1920 monitor. */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 6%, 64px);
 }
 
 .profileImage:hover {
@@ -518,7 +540,6 @@
      easter egg, so this must not read as a button. */
   background: none;
   border: none;
-  padding: 0;
   margin: 0;
   font: inherit;
   /* Explicit, not inherit: this used to sit in an <h5> which global.css
@@ -684,60 +705,103 @@
    below. Note that global.css colours only h1-h4 and p — any span or li added
    here needs an explicit colour or it renders near-black on near-black.
 
-   Equal heights: slick.css floats .slick-slide with height:100%, which against
-   an auto-height track resolves to "as tall as my own text" — that is what made
-   the cards ragged. Making the track a flex row and each slide a stretched flex
-   item equalises them. Do not reach for adaptiveHeight, which does the reverse.
+   Equal heights come from the grid: it stretches its items, and the card takes
+   height:100% of the cell. That is the whole mechanism now. It used to be a
+   four-rule chain fighting react-slick's injected wrappers.
    --------------------------------------------------------------------------- */
 
-/* .projectCard lifts 4px on :hover and carries a 2px border, but slick.css
-   gives .slick-list overflow:hidden — so without room here the top edge and
-   rounded corners of the hovered card get sliced off. Vertical padding only:
-   horizontal padding would change the width slick measures when it sizes
-   slides. */
-.projectsDiv :global(.slick-list) {
-  padding-top: 8px;
-  padding-bottom: 8px;
+/* Every project at once. auto-fill with a 280px floor gives 3 columns on a
+   desktop, 2 around 900px and 1 on a phone without a single media query, and
+   because it is plain CSS the server-rendered HTML is already the final layout
+   — which is what removed the 0.52 mobile CLS the carousel caused.
+
+   Equal card heights come from the grid stretching its items plus the card's
+   own height:100%; no wrapper chain, no adaptiveHeight. */
+.projectsLede {
+  /* Explicit colour: global.css paints every <p> #c6c6c6, which is unreadable
+     on .flatPage's #f0faff. */
+  color: #2c3a42;
+  font-size: clamp(0.95rem, 1.2vw, 1.1rem);
+  line-height: 1.6;
+  text-align: center;
+  margin: 0 auto 1.6rem;
+  max-width: 60ch;
 }
 
-.projectsDiv :global(.slick-track) {
-  display: flex;
+.projectsSectionHeading {
+  /* Same reason: global.css paints h1-h4 white. */
+  color: #16232b;
+  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+  line-height: 1.3;
+  /* Top margin separates the second heading from the featured row above it.
+     The first heading collapses this against the lede's own bottom margin, so
+     one rule covers both. */
+  margin: 2.4rem 0 1rem;
+}
+
+.projectGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
   align-items: stretch;
 }
 
-/* The track's clearfix pseudo-elements would otherwise become flex items. */
-.projectsDiv :global(.slick-track)::before,
-.projectsDiv :global(.slick-track)::after {
-  display: none;
+/* The secondary run. Narrower columns fit four across where the featured three
+   fit three, which is most of what signals "these matter less" before any of
+   the type changes. */
+.projectGridCompact {
+  grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+  gap: 14px;
+  margin-bottom: 0.5rem;
 }
 
-.projectsDiv :global(.slick-slide) {
-  height: auto; /* undo slick's height: 100% */
-  float: none; /* a flex item now, not a float */
-  display: flex; /* lets .projectCard stretch to the full slide height */
-  flex-shrink: 0; /* react-slick writes an exact inline width; never squeeze it */
-}
-
-/* react-slick wraps the element returned from the map in two more divs before
-   the card, so the stretch has to be handed down through both or the card only
-   grows as tall as its own text. */
-.projectsDiv :global(.slick-slide) > div {
-  display: flex;
+/* Optional picture at the top of a card. aspect-ratio holds the space before
+   the file arrives, so a card with a picture and one without stay the same
+   shape and nothing reflows on load. object-fit means a screenshot of any
+   proportion can be dropped in without distorting. */
+.projectShot {
+  aspect-ratio: 16 / 9;
   width: 100%;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  overflow: hidden;
+  background-color: rgba(0, 118, 165, 0.12);
 }
 
-/* The div react-slick puts around the card carries an inline
-   "width:100%;display:inline-block", which no stylesheet rule can override.
-   Rather than fight it with !important, note that it is already stretched to
-   the full slide height as a flex item — so the card just takes height:100%
-   from it. */
+.projectShotImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.projectCardCompact .projectShot {
+  margin-bottom: 10px;
+  border-radius: 9px;
+}
+
+.projectCardCompact {
+  padding: 14px;
+  border-width: 1px;
+  /* Lighter fill than a featured card: the same hue, roughly half the strength,
+     so the two runs read as one family. */
+  background-color: rgba(0, 118, 165, 0.1);
+}
+
+.projectCardCompact .projectTitle {
+  font-size: clamp(0.95rem, 1.1vw, 1.1rem);
+}
+
+.projectCardCompact .projectDescription {
+  font-size: clamp(0.8rem, 0.9vw, 0.9rem);
+  color: #3c4a52;
+}
 
 .projectCard {
   height: 100%;
   display: flex;
   flex-direction: column;
   padding: 20px;
-  margin: 0 10px;
   /* Same chrome vocabulary as .personal and .contactMe. Light is the base and
      dark overrides further down, the way the rest of the stylesheet works —
      possible now that the carousel only appears on its own page. */
@@ -761,7 +825,7 @@
 }
 
 .projectCompany {
-  font-size: clamp(0.68rem, 0.75vw, 0.8rem);
+  font-size: clamp(0.75rem, 0.6vw + 0.6rem, 0.85rem);
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: #1e4b5f;
@@ -779,7 +843,7 @@
 }
 
 .projectPeriod {
-  font-size: clamp(0.68rem, 0.75vw, 0.8rem);
+  font-size: clamp(0.75rem, 0.6vw + 0.6rem, 0.85rem);
   color: #4a5b63;
 }
 
@@ -812,7 +876,7 @@
 }
 
 .projectTag {
-  font-size: clamp(0.68rem, 0.75vw, 0.8rem);
+  font-size: clamp(0.75rem, 0.6vw + 0.6rem, 0.85rem);
   line-height: 1.2;
   color: #12303d;
   background-color: rgba(255, 255, 255, 0.75);
@@ -820,51 +884,6 @@
   border-radius: 6px;
   padding: 3px 8px;
   white-space: nowrap;
-}
-
-/* Dots. slick-theme paints them black at 0.25 opacity — invisible on #232020 —
-   and pins the row absolutely at bottom:-25px, so a wrapped second row would
-   overlap the footer. Put them in normal flow and make them white. */
-.projectsDiv :global(.slick-dotted.slick-slider) {
-  margin-bottom: 0;
-}
-
-.projectsDiv :global(.slick-dots) {
-  position: static;
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 2px;
-  margin-top: 18px;
-}
-
-/* 32px hit area with a small visual dot inside it. WCAG 2.5.8 wants at least
-   24x24 for a touch target; slick ships 20x20 and the earlier 16px override
-   here was smaller still. The glyph font-size controls how big the dot LOOKS,
-   independently of how big it is to hit. */
-.projectsDiv :global(.slick-dots li),
-.projectsDiv :global(.slick-dots li button) {
-  width: 32px;
-  height: 32px;
-  margin: 0;
-  padding: 0;
-}
-
-.projectsDiv :global(.slick-dots li button)::before {
-  content: "";
-  position: absolute;
-  top: 11px;
-  left: 11px;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #1e4b5f;
-  opacity: 0.35;
-  transition: opacity 0.2s ease;
-}
-
-.projectsDiv :global(.slick-dots li.slick-active button)::before {
-  opacity: 1;
 }
 
 /* ---------------------------------------------------------------------------
@@ -880,7 +899,16 @@
    --------------------------------------------------------------------------- */
 
 :global(html[data-theme="dark"]) .mainContent {
+  /* The same cloud shapes at night: the blooms drop to a few percent opacity
+     and the lower haze borrows the warm accent rather than the blue. Any light
+     panel that gains a background-image needs this counterpart, or it keeps the
+     daytime sky on a dark page. */
   background-color: #232020;
+  background-image:
+    radial-gradient(70% 55% at 15% 8%, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 62%),
+    radial-gradient(55% 45% at 80% 16%, rgba(255, 255, 255, 0.035) 0%, rgba(255, 255, 255, 0) 60%),
+    radial-gradient(90% 55% at 50% 102%, rgba(var(--warm), 0.07) 0%, rgba(var(--warm), 0) 68%),
+    linear-gradient(180deg, #272322 0%, #232020 58%, #1d1b1b 100%);
 }
 
 :global(html[data-theme="dark"]) .description,
@@ -905,6 +933,27 @@
   background-color: #232020;
 }
 
+:global(html[data-theme="dark"]) .projectShot {
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+:global(html[data-theme="dark"]) .projectCardCompact {
+  /* Dark counterpart, or the compact cards keep the light fill on a dark page. */
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+:global(html[data-theme="dark"]) .projectCardCompact .projectDescription {
+  color: #aab4b9;
+}
+
+:global(html[data-theme="dark"]) .projectsLede {
+  color: #cdd6da;
+}
+
+:global(html[data-theme="dark"]) .projectsSectionHeading {
+  color: #f2f5f6;
+}
+
 :global(html[data-theme="dark"]) .pageHeading,
 :global(html[data-theme="dark"]) .projectTitle {
   color: #ffffff;
@@ -916,10 +965,6 @@
 
 :global(html[data-theme="dark"]) .projectCard {
   border-color: rgba(255, 255, 255, 0.35);
-}
-
-:global(html[data-theme="dark"]) .projectCard:hover {
-  border-color: rgba(var(--warm), 0.55);
 }
 
 :global(html[data-theme="dark"]) .projectCompany {
@@ -942,23 +987,6 @@
   border-color: rgba(255, 255, 255, 0.22);
 }
 
-:global(html[data-theme="dark"]) .projectsDiv :global(.slick-arrow) {
-  background-color: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.3);
-}
-
-:global(html[data-theme="dark"]) .projectsDiv :global(.slick-arrow):hover {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-color: #ffffff;
-}
-
-:global(html[data-theme="dark"]) .projectsDiv :global(.slick-arrow)::before {
-  color: #ffffff;
-}
-
-:global(html[data-theme="dark"]) .projectsDiv :global(.slick-dots li button)::before {
-  background-color: #ffffff;
-}
 
 :global(html[data-theme="dark"]) .flatPage .footerName {
   color: #c6c6c6;
@@ -1091,21 +1119,8 @@
     max-height: 80vh;
   }
 
-  .projectsDiv {
-    /* Not a bare 6%: slick positions its arrows 25px outside this box, so on a
-       320px screen 6% (19px) leaves them hanging over the edge and the whole
-       page scrolls sideways. */
-    padding-left: max(6%, 34px);
-    padding-right: max(6%, 34px);
-  }
-
   .projectCard {
     padding: 16px;
-    margin: 0 6px;
-  }
-
-  .projectsDiv :global(.slick-dots) {
-    margin-top: 14px;
   }
 
   /* The timeline alternates left/right around a centre line on desktop.
@@ -1201,52 +1216,10 @@
 }
 
 /* ---------------------------------------------------------------------------
-   Focus visibility. slick-theme.css sets `outline: none` on its arrows and
-   dots, which removes the only keyboard affordance in the carousel. Put a
-   visible ring back on everything focusable — :focus-visible so it only shows
-   for keyboard users, not on mouse click.
+   Focus visibility. A visible ring on everything focusable, :focus-visible so
+   it only shows for keyboard users and not on mouse click.
    --------------------------------------------------------------------------- */
 
-/* slick draws its arrows and dots as glyphs from a bundled icon font, so the
-   carousel pulls a whole extra font download for three characters every system
-   font already has. Pointing these pseudo-elements at the inherited family
-   leaves slick's @font-face unused, and an unused @font-face is never fetched —
-   which beats font-display, since that still downloads the file. */
-.projectsDiv :global(.slick-prev)::before,
-.projectsDiv :global(.slick-next)::before,
-.projectsDiv :global(.slick-dots li button)::before {
-  font-family: inherit;
-}
-
-/* Drawn in CSS rather than taken from the icon font: same circular treatment
-   as the toolbar and lightbox controls, and 44px clears the touch-target
-   minimum. */
-.projectsDiv :global(.slick-arrow) {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.3);
-  border-radius: 50%;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.projectsDiv :global(.slick-arrow):hover {
-  background-color: rgba(0, 0, 0, 0.14);
-  border-color: #1e4b5f;
-}
-
-.projectsDiv :global(.slick-arrow)::before {
-  font-size: 20px;
-  line-height: 1;
-  color: #1a1a1a;
-  opacity: 0.95;
-}
-
-.projectsDiv :global(.slick-arrow):focus-visible,
-.projectsDiv :global(.slick-dots li button):focus-visible,
 .iconButton:focus-visible,
 .channelLink:focus-visible,
 .backLink:focus-visible,

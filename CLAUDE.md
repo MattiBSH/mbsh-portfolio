@@ -11,7 +11,7 @@ functionality was removed and replaced with portfolio content.
 
 The site is bilingual (English + Danish), has a light/dark theme toggle that
 persists across pages and reloads, a "random effect" gag button that recolours
-text, a carousel of past projects, and a personal section with a gallery of
+text, a grid of past projects, and a personal section with a gallery of
 nature reels from Matti's YouTube channel.
 
 ## Commands
@@ -37,7 +37,6 @@ from the app: `sharp` requires >= 20.9.0 and `@playwright/test` requires >= 20.
 
 - **Next.js 14.2.5** (pinned exactly in package.json, not `"latest"` — keep it
   that way), React 18.2, **Pages Router** (no `app/` directory, no TypeScript)
-- **react-slick** + **slick-carousel** — the projects carousel
 - **sharp** — production image optimisation for `next/image`
 - CSS Modules; no Tailwind, no CSS-in-JS
 - **@playwright/test** (dev only) — integration tests in `tests/`
@@ -47,10 +46,10 @@ from the app: `sharp` requires >= 20.9.0 and `@playwright/test` requires >= 20.
 ```
 components/
   Portfolio.jsx      The portfolio page, rendered for whichever language it is given
-  ProjectsPage.jsx   The /projects route: the carousel, on its own page
+  ProjectsPage.jsx   The /projects route: the project grid, on its own page
   PersonalPage.jsx   The /personal route: nature reels, kept off the front page
   SiteChrome.jsx     SiteHead / Toolbar / SiteFooter, shared by both page types
-  ProjectCarousel.jsx  react-slick wrapper for the projects section
+  ProjectGrid.jsx    The project cards, in a CSS grid
   ReelGallery.jsx    Shorts grid plus the focused lightbox viewer
   Icons.jsx          Inline SVG sun, moon, and the two flags
 lib/
@@ -72,7 +71,7 @@ pages/
 tests/
   site.spec.js       Playwright integration suite, run on desktop + mobile
 styles/
-  global.css         Imports slick CSS, sets base typography and dark page bg
+  global.css         Base typography and the dark page background
   theme.module.css   Both themes in one file (see Theming below)
 public/images/       profile.png and og.jpg (the 1200x630 social crop)
 public/              robots.txt and sitemap.xml, both written by hand
@@ -125,8 +124,9 @@ outside the React tree, so it is never re-rendered on its own.
 `clamp(min, vw, max)` so text has a floor on phones and a ceiling on large
 monitors — do not reintroduce a bare `vw` font size. At 900px the three-column
 flex rows stack and the timeline collapses from its alternating left/right
-layout to a single column with the line down the left edge. The carousel drops
-to 2 slides at 1024px and 1 slide at 640px via react-slick's `responsive` array.
+layout to a single column with the line down the left edge. The project grid
+needs no media query at all: `repeat(auto-fill, minmax(280px, 1fr))` gives three
+columns on a desktop, two around 900px and one on a phone.
 
 **Work and education share one timeline.** `EXPERIENCE` and `EDUCATION` in
 `lib/content.js` have the same shape — `company` keys into `COMPANIES`, years
@@ -168,7 +168,7 @@ There is still no CMS, no data fetching, no API routes, and no
 rather than assumed. The suite covers both pages rendering, the Open Graph tags,
 the theme toggle surviving navigation and reload, the no-flash script applying
 the theme before first paint, the Random-effect/theme interaction, the LinkedIn
-link, mobile font sizes, horizontal overflow, and the carousel's slide count.
+link, mobile font sizes, horizontal overflow, and the project grid.
 
 **The config deliberately uses port 3100 with `reuseExistingServer: false`.** Do
 not "simplify" this back to :3000 with reuse. A `next start` process caches the
@@ -179,8 +179,8 @@ application bug — this cost real debugging time once already.
 
 Two locator traps worth remembering: `getByRole("heading", { name: /Matti
 Hansen/ })` also matches the footer's "Made by Matti Hansen", and counting
-`.slick-active` is unreliable because react-slick clones slides when `infinite`
-is on — measure slide width against `.slick-list` instead.
+every project card is a plain `[data-project-id]` element now, so `getByRole`
+and ordinary locators work on them.
 
 ## Page order
 
@@ -199,14 +199,14 @@ footer.
 roughly 80%, where a reader could easily never reach it. A test fails if the
 call to action slips past halfway.
 
-Moving the carousel to its own route took **15 kB of JavaScript off the front
-page** (110 kB to 95 kB First Load) because react-slick now only loads on
-`/projects`.
+Moving the projects to their own route took **15 kB of JavaScript off the front
+page** (110 kB to 95 kB First Load) when react-slick still existed. Dropping the
+library took that 15 kB off `/projects` too, and the route is now the lightest
+of the three page types rather than the heaviest.
 
-`ProjectsPage` keeps the `.projectsDiv` wrapper around the carousel. Every rule
-that makes it work — equal card heights, the dot row, arrow sizing, the hover
-headroom — is scoped to that class, so a different wrapper would silently break
-all of it.
+`ProjectsPage` keeps the `.projectsDiv` wrapper. It sets the page's measure
+(`max-width: 1200px` and a `clamp()` gutter, replacing a flat 20% that left only
+~196px of text per card on a 1280 laptop and wasted 768px on a 1920 monitor).
 
 `/projects` is a **flat page**: `.flatPage` paints one colour edge to edge
 (`#f0faff` light, `#232020` dark) and forces the three bands that frame the
@@ -219,7 +219,7 @@ The `<h1>` there uses `.pageHeading`, not `.headlineWhite`. The latter sits on
 the front page's permanently dark `.projectsCta` band and has to stay white; a
 theme-aware version of it would paint that heading black on black.
 
-**The carousel follows the theme now.** It used to be hardcoded dark, which was
+**The cards follow the theme.** It used to be hardcoded dark, which was
 only safe while it sat on the front page's dark band. On its own page it uses
 the normal convention — light as the base, a `html[data-theme="dark"]` block
 below. Watch the specificity trap when adding to that block: the current
@@ -242,8 +242,7 @@ size, which is why `.description` and `.info` are applied to paragraphs now.
 `.timelineContent h3` is tied to that choice; changing the tag means changing the
 selector.
 
-Every interactive control has a `:focus-visible` ring, including slick's arrows
-and dots, which ship with `outline: none`. `prefers-reduced-motion` disables the
+Every interactive control has a `:focus-visible` ring. `prefers-reduced-motion` disables the
 hover transforms and reduces the random effect to a single recolour rather than
 ten repaints in two seconds.
 
@@ -252,11 +251,10 @@ Contrast is asserted in the test suite rather than eyeballed — see the
 styles in both themes.
 
 **Touch targets must stay at or above 24x24** (WCAG 2.5.8, and what Lighthouse
-reports as "Touch targets do not have sufficient size or spacing"). slick-theme
-ships 20x20 arrows and 20x20 dots, so `.projectsDiv` overrides both — the dots
-get a 32px hit area with the visual dot kept small by the glyph `font-size`,
-independent of how big it is to hit. A test measures every `a`/`button` on all
-four routes; dropping those overrides fails it.
+reports as "Touch targets do not have sufficient size or spacing"). A test
+measures every `a`/`button` on all six routes. This used to need overrides on
+slick's 20x20 arrows and dots; the grid has no controls of its own, so the only
+things it measures now are links and the toolbar buttons.
 
 Body copy uses `line-height: 1.6` (WCAG 1.4.12). Inline links inside a sentence
 carry `padding: 3px 2px` — vertical padding on an inline element grows the hit
@@ -288,13 +286,11 @@ indirectly (contrast, touch targets and layout all read computed styles), and
 the quick manual check is to throttle to Slow 4G and compare a screenshot at
 ~250ms against one after full load.
 
-**No web fonts are downloaded.** The site uses the system font stack, and
-slick-carousel's bundled icon font — which it uses only for the `←`, `→` and `•`
-glyphs — is bypassed by pointing those pseudo-elements at the inherited family.
-An unused `@font-face` is never fetched, which is strictly better than setting
-`font-display` (that still downloads the file). The arrows and dots are drawn in
-CSS instead: 44px circles and 10px round dots. A test asserts zero font requests
-across all four routes, so reintroducing one is caught immediately.
+**No web fonts are downloaded.** The site uses the system font stack. A test
+asserts zero font requests across all six routes, so reintroducing one is caught
+immediately. This used to take real work: slick-carousel bundled an icon font for
+the `←`, `→` and `•` glyphs, bypassed by pointing those pseudo-elements at the
+inherited family. That went with the library.
 
 **Read Lighthouse's score, not its Insights list.** The Insights entries
 ("Improve image delivery", "Legacy JavaScript", "Render-blocking requests") all
@@ -382,42 +378,60 @@ None of the projects are publicly reachable — they are internal municipal
 systems, and the Fortis app has since been pulled from the App Store. Do not add
 "view project" links; there is nothing to point at.
 
-## Project cards and react-slick
+## Project cards
 
-Two things about this carousel are load-bearing and easy to break:
+The `/projects` route renders every project at once in a CSS grid
+(`components/ProjectGrid.jsx`). There is no carousel, no JavaScript and no
+library behind it.
 
-**react-slick does not merge props onto `.slick-slide`.** It wraps the element you
-return from the map in two further divs, so `data-project-id` lands on a
-grandchild. Test selectors must use a descendant combinator
-(`.slick-slide:not(.slick-cloned) [data-project-id]`), and `getByRole` does not
-work for carousel content at all — inactive slides are `aria-hidden`, which
-Playwright's role engine skips.
+**It used to be react-slick, and the reason it is not is worth keeping.** The
+library decided its layout in `componentDidMount`, so the prerendered HTML was
+always the desktop 3-up variant. A phone painted three 108px columns with titles
+broken mid-word, then reflowed the page by roughly 770px when hydration applied
+the mobile breakpoint: **CLS 0.52 on a throttled Pixel 5**, the only failing Core
+Web Vital on the site, and invisible locally because unthrottled hydration beats
+first paint. It also showed 3 of 11 projects and marked the other 8
+`aria-hidden`, cloned 14 extra slides into the DOM, shipped English `Previous`
+and `Next` labels onto the Danish page, and cost 17 kB over the wire.
 
-**Equal card heights come from a chain, not one rule.** `.slick-track` is a flex
-row, `.slick-slide` is `height:auto; display:flex`, react-slick's own wrapper div
-gets `display:flex`, and the card takes `height:100%`. That last step is
-`height:100%` rather than `flex:1` because react-slick writes an inline
-`display:inline-block` on the div above the card, which no stylesheet rule can
-override — the div is already stretched, so the card just inherits its height.
-Do not use `adaptiveHeight`.
+What that means for anyone tempted to bring a carousel back: **the CLS is the
+reason, not the kilobytes.** Any library that picks its layout after mount will
+reintroduce it.
 
-`slidesToScroll` must equal `slidesToShow` at every breakpoint, repeated inside
-each `responsive` entry. react-slick renders `ceil(slideCount / slidesToScroll)`
-dots, so leaving it at 1 gives one dot per project.
+**Equal card heights are one declaration now.** The grid stretches its items and
+the card takes `height: 100%`. This replaced a four-rule chain
+(`.slick-track` flex row, `.slick-slide` `height:auto; display:flex`, the wrapper
+div, then the card) that existed purely to work around react-slick's injected
+divs and an inline `display:inline-block` no stylesheet could override. A test
+asserts that cards sharing a row have equal heights, so the property is guarded
+even though the mechanism is now trivial.
+
+**Two rules the grid does not get to forget.** `global.css` paints every `h1`-`h4`
+white and every `p` `#c6c6c6`, which is invisible on `.flatPage`'s `#f0faff`. Any
+new text element on this route needs an explicit colour and a dark counterpart —
+that is why `.pageHeading`, `.projectsLede` and `.projectsSectionHeading` all set
+one. And every project card is a plain `[data-project-id]` element, so tests use
+ordinary locators; the old descendant-combinator dance is gone.
+
+`PROJECTS` is rendered through `projectEntries()`, which sorts it the way
+`timelineEntries()` sorts the timeline: most recent first, ongoing ahead of
+finished. The array was hand-ordered before and had already drifted, with a 2025
+project sitting above two 2026 ones.
 
 ## The personal page
 
 The nature-video content lives on its own route — `/personal` and
 `/danish_personal` — rather than on the front page, so it does not interrupt the
 professional narrative. The only way in is a quiet link under the Projects
-carousel (`content.personal.teaser`); there is deliberately no toolbar entry.
+front page (`content.personal.teaser` in `Portfolio.jsx`); there is
+deliberately no toolbar entry, and `/projects` does not link to it at all.
 
 Copy is under `personal` in each language in `lib/content.js`; the videos are in
 the language-neutral `REELS` export, with only `reelsHeading` translated. The
 page has its own `META_PERSONAL` in `lib/site.js` — sharing the portfolio's
 metadata would give both routes an identical link preview.
 
-**Four routes now exist, and two of them are Danish.** `langForPath` in
+**Six routes now exist, and three of them are Danish.** `langForPath` in
 `lib/theme.js` matches against `DANISH_PATHS`, and the pre-paint script in the
 same file has to agree with it — they are separate implementations of one rule,
 so change both together. The language switch uses `switchPersonalHref` on the
@@ -468,7 +482,7 @@ will fail the suite.
 No em dashes or en dashes in anything a visitor reads. They are a common tell
 for machine-written text, and the site is meant to read as Matti's own writing.
 Use a full stop and a new sentence, a comma, or a colon instead; date ranges use
-a plain hyphen (`2021-2022`). A test asserts this across all four routes, so a
+a plain hyphen (`2021-2022`). A test asserts this across all six routes, so a
 stray one fails the suite rather than reaching the page.
 
 This applies to page copy only. Code comments and this file are unaffected.

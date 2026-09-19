@@ -286,10 +286,74 @@ test.describe("regressions from the audit", () => {
     expect(await ratio()).toBeGreaterThan(4.5);
   });
 
+  test("every heading on /projects is readable in both themes", async ({ page }) => {
+    // This exists because it broke. A dark rule inserted between the two halves
+    // of a grouped selector stranded .pageHeading, which lost its white colour
+    // and picked up a pale background: black text on a light band, on a dark
+    // page. Nothing in the suite noticed, because the contrast checks only
+    // covered .backLink on /personal.
+    const lum = (rgb) => {
+      const [r, g, b] = rgb.match(/\d+/g).map(Number).map((v) => {
+        const c = v / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    };
+
+    const worstRatio = async () =>
+      page.evaluate(() => {
+        // Walk up collecting background layers and composite them, the way a
+        // reader's eye does. Reading the first non-transparent value is wrong:
+        // the project cards are rgba(0, 118, 165, 0.192), and treating that as
+        // opaque reports a dark teal that is nowhere on the page.
+        const parse = (c) => {
+          const n = (c.match(/[\d.]+/g) || [0, 0, 0, 0]).map(Number);
+          return { r: n[0], g: n[1], b: n[2], a: n.length > 3 ? n[3] : 1 };
+        };
+        const paintedBg = (el) => {
+          const layers = [];
+          for (let n = el; n; n = n.parentElement) {
+            const c = parse(getComputedStyle(n).backgroundColor);
+            if (c.a > 0) layers.push(c);
+            if (c.a === 1) break;
+          }
+          // Bottom of the stack, then composite each layer over what is below.
+          let acc = { r: 255, g: 255, b: 255 };
+          for (let i = layers.length - 1; i >= 0; i--) {
+            const t = layers[i];
+            acc = {
+              r: t.r * t.a + acc.r * (1 - t.a),
+              g: t.g * t.a + acc.g * (1 - t.a),
+              b: t.b * t.a + acc.b * (1 - t.a),
+            };
+          }
+          return `rgb(${Math.round(acc.r)}, ${Math.round(acc.g)}, ${Math.round(acc.b)})`;
+        };
+        return [...document.querySelectorAll("main h1, main h2, main h3")].map((h) => ({
+          text: h.textContent.trim().slice(0, 40),
+          fg: getComputedStyle(h).color,
+          bg: paintedBg(h),
+        }));
+      });
+
+    for (const route of ["/projects", "/danish_projects"]) {
+      await page.goto(route);
+      for (const theme of ["light", "dark"]) {
+        if (theme === "dark") {
+          await page.getByRole("button", { name: /Toggle dark mode|Skift/ }).click();
+        }
+        for (const h of await worstRatio()) {
+          const [l1, l2] = [lum(h.fg), lum(h.bg)].sort((x, y) => y - x);
+          const ratio = (l1 + 0.05) / (l2 + 0.05);
+          expect(ratio, `${route} ${theme}: "${h.text}" ${h.fg} on ${h.bg}`).toBeGreaterThan(4.5);
+        }
+      }
+    }
+  });
+
   test("every interactive control meets the 24x24 touch-target minimum", async ({ page }) => {
     // WCAG 2.5.8, and what Lighthouse's "Touch targets do not have sufficient
-    // size or spacing" audit reports. slick ships 20x20 arrows and 20x20 dots,
-    // so this fails again the moment those overrides are dropped.
+    // size or spacing" audit reports.
     for (const route of [
       "/",
       "/danish_index",
@@ -304,8 +368,6 @@ test.describe("regressions from the audit", () => {
         document.querySelectorAll("a, button, [role=button]").forEach((el) => {
           const b = el.getBoundingClientRect();
           if (!b.width || !b.height) return;
-          // Carousel clones duplicate every control; measure the originals.
-          if (el.closest(".slick-cloned")) return;
           if (b.width < 24 || b.height < 24) {
             out.push(
               `${el.tagName.toLowerCase()}.${String(el.className).split(" ")[0]} ` +
@@ -320,10 +382,9 @@ test.describe("regressions from the audit", () => {
   });
 
   test("no route downloads a web font", async ({ page }) => {
-    // The site uses the system font stack. slick-carousel bundles an icon font
-    // for its arrow and dot glyphs, which Lighthouse flags for a missing
-    // font-display; the CSS points those pseudo-elements at the inherited
-    // family instead, leaving that @font-face unused and unfetched.
+    // The site uses the system font stack and downloads nothing. This used to
+    // guard against slick-carousel's bundled icon font; that dependency is gone,
+    // so now it simply stops one being introduced.
     const fonts = [];
     page.on("request", (r) => {
       if (/\.(woff2?|ttf|eot|otf)(\?|$)/i.test(r.url())) fonts.push(r.url());
@@ -340,34 +401,6 @@ test.describe("regressions from the audit", () => {
       await page.waitForLoadState("networkidle");
     }
     expect(fonts).toEqual([]);
-  });
-
-  test("carousel arrows and dots survive without the icon font", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name === "mobile", "arrows are desktop-sized here");
-    await page.goto("/projects");
-    // Drawn in CSS now, so assert the shapes rather than a glyph.
-    const arrow = await page.locator(".slick-prev").boundingBox();
-    expect(Math.round(arrow.width)).toBe(44);
-    expect(Math.round(arrow.height)).toBe(44);
-
-    const readDot = () =>
-      page.locator(".slick-dots li button").first().evaluate((el) => {
-        const cs = getComputedStyle(el, "::before");
-        return { w: cs.width, r: cs.borderRadius, bg: cs.backgroundColor };
-      });
-
-    // A painted shape, not a glyph: it has a size, it is round, and it is
-    // filled. The fill follows the theme now that the page has a light mode,
-    // so assert both are opaque and that they actually differ.
-    const light = await readDot();
-    expect(light.w).toBe("10px");
-    expect(light.r).toBe("50%");
-    expect(light.bg).not.toContain("rgba(0, 0, 0, 0)");
-
-    await page.getByRole("button", { name: "Toggle dark mode" }).click();
-    const dark = await readDot();
-    expect(dark.bg).toContain("255, 255, 255");
-    expect(dark.bg).not.toBe(light.bg);
   });
 
   test("no em dashes in the rendered copy", async ({ page }) => {
@@ -837,7 +870,7 @@ test.describe("layout", () => {
   });
 
   test("no route scrolls horizontally at 320px", async ({ page }) => {
-    // The narrowest phone still in use. slick's arrows sit 25px outside
+    // The narrowest phone still in use. Formerly slick's arrows sat 25px outside
     // .projectsDiv, which is what broke this before.
     await page.setViewportSize({ width: 320, height: 800 });
     for (const route of ROUTES) {
@@ -872,7 +905,13 @@ test.describe("layout", () => {
   });
 
   test("body text stays readable on every route", async ({ page }) => {
-    for (const route of ["/danish_index", "/personal", "/danish_personal"]) {
+    for (const route of [
+      "/danish_index",
+      "/personal",
+      "/danish_personal",
+      "/projects",
+      "/danish_projects",
+    ]) {
       await page.goto(route);
       const p = page.locator("p").first();
       expect(await fontPx(p), route).toBeGreaterThanOrEqual(12);
@@ -889,14 +928,10 @@ test.describe("layout", () => {
   });
 });
 
-// react-slick clones slides when infinite is on, and marks inactive ones
-// aria-hidden — which Playwright's role engine skips. So project assertions go
-// through data attributes and textContent, never getByRole.
-//
-// Note the descendant combinator: react-slick does NOT merge props onto
-// .slick-slide, it wraps the element you return in two divs, so data-project-id
-// ends up a grandchild rather than on the slide itself.
-const SLIDE = ".slick-slide:not(.slick-cloned) [data-project-id]";
+// Every project card is in the DOM, visible, and carries its id directly. Under
+// the old carousel this had to dodge cloned slides and a wrapper div, and
+// getByRole did not work at all because inactive slides were aria-hidden.
+const SLIDE = "[data-project-id]";
 
 const projectIds = (page) =>
   page.$$eval(SLIDE, (els) => els.map((el) => el.dataset.projectId));
@@ -920,7 +955,6 @@ const projectCopy = (page) =>
 test.describe("projects page routing", () => {
   test("the front page no longer renders the carousel", async ({ page }) => {
     await page.goto("/");
-    await expect(page.locator(".slick-slider")).toHaveCount(0);
     await expect(page.locator("[data-project-id]")).toHaveCount(0);
   });
 
@@ -1011,7 +1045,7 @@ test.describe("projects page routing", () => {
   });
 });
 
-test.describe("projects carousel", () => {
+test.describe("project grid", () => {
   test("shows project cards", async ({ page }) => {
     await page.goto("/projects");
     const copy = await projectCopy(page);
@@ -1083,50 +1117,86 @@ test.describe("projects carousel", () => {
     }
   });
 
-  test("the dot row does not grow one dot per project", async ({ page }, testInfo) => {
+  test("three projects lead, the rest follow, and all of them are there", async ({ page }) => {
     await page.goto("/projects");
-    const dots = await page.locator(".slick-dots li").count();
-    const projects = (await projectIds(page)).length;
-    const perPage = testInfo.project.name === "mobile" ? 1 : 3;
-    expect(dots).toBe(Math.ceil(projects / perPage));
+    const featured = page.locator('[data-featured="true"]');
+    const rest = page.locator('[data-featured="false"]');
+    await expect(featured).toHaveCount(3);
+    expect(await rest.count()).toBeGreaterThan(0);
+
+    // Order matters: the featured three have to come first in the document, not
+    // merely be styled differently.
+    const order = await page.$$eval(SLIDE, (els) =>
+      els.map((el) => el.dataset.featured)
+    );
+    expect(order.slice(0, 3)).toEqual(["true", "true", "true"]);
+    expect(order.slice(3).every((v) => v === "false")).toBe(true);
+
+    // Featured cards are visibly larger; that is the whole point of the split.
+    const fBox = await featured.first().boundingBox();
+    const rBox = await rest.first().boundingBox();
+    expect(fBox.width).toBeGreaterThan(rBox.width * 0.95);
   });
 
-  test("a hovered card is not clipped by the carousel viewport", async ({ page }, testInfo) => {
-    test.skip(testInfo.project.name === "mobile", "no hover on touch");
-    await page.goto("/projects");
-    const card = page.locator(".slick-slide.slick-active article").first();
-    await card.scrollIntoViewIfNeeded();
-    await card.hover();
-    await page.waitForTimeout(400);
+  test("the featured split is the same in both languages", async ({ page }) => {
+    // `featured` is a top-level field, so it physically cannot differ. This
+    // guards the rendering, not the data.
+    const ids = async (route) => {
+      await page.goto(route);
+      return page.$$eval('[data-featured="true"]', (els) =>
+        els.map((el) => el.dataset.projectId)
+      );
+    };
+    expect(await ids("/projects")).toEqual(await ids("/danish_projects"));
+  });
 
-    // .projectCard lifts on hover and .slick-list clips overflow; if the list
-    // has no vertical padding the top of the card is cut off.
-    const { cardTop, listTop } = await page.evaluate(() => {
-      const a = document.querySelector(".slick-slide.slick-active article");
-      const l = document.querySelector(".slick-list");
-      return {
-        cardTop: a.getBoundingClientRect().top,
-        listTop: l.getBoundingClientRect().top,
-      };
+  test("every project is rendered, visible and not hidden from assistive tech", async ({ page }) => {
+    await page.goto("/projects");
+    const cards = page.locator(SLIDE);
+    const count = await cards.count();
+    expect(count).toBeGreaterThan(5);
+
+    // The carousel showed 3 of 11 and marked the rest aria-hidden. Nothing is
+    // hidden now, which is the point of the grid.
+    const hidden = await page.$$eval(SLIDE, (els) =>
+      els.filter((el) => el.closest("[aria-hidden='true']")).length
+    );
+    expect(hidden).toBe(0);
+    await expect(cards.first()).toBeVisible();
+    await expect(cards.nth(count - 1)).toBeVisible();
+  });
+
+  test("cards sharing a row have equal heights", async ({ page }) => {
+    // The most fragile thing about the old carousel was a four-rule chain that
+    // kept card heights equal. The grid stretches its items instead, so this
+    // asserts the property rather than the mechanism.
+    await page.goto("/projects");
+    const rows = await page.$$eval(SLIDE, (els) => {
+      const byTop = {};
+      els.forEach((el) => {
+        const b = el.getBoundingClientRect();
+        const key = Math.round(b.top);
+        (byTop[key] = byTop[key] || []).push(Math.round(b.height));
+      });
+      return Object.values(byTop);
     });
-    expect(cardTop).toBeGreaterThanOrEqual(listTop);
+
+    for (const heights of rows) {
+      expect(Math.max(...heights) - Math.min(...heights)).toBeLessThanOrEqual(1);
+    }
   });
 
-  test("adapts the number of visible slides to the viewport", async ({ page }, testInfo) => {
+  test("the grid adapts its column count to the viewport", async ({ page }, testInfo) => {
     await page.goto("/projects");
-    const list = page.locator(".slick-list");
-    await expect(list).toBeVisible();
-
-    const ratio = await page.evaluate(() => {
-      const listEl = document.querySelector(".slick-list");
-      const slide = document.querySelector(".slick-slide");
-      return slide.getBoundingClientRect().width / listEl.getBoundingClientRect().width;
+    const perRow = await page.$$eval(SLIDE, (els) => {
+      const top = Math.round(els[0].getBoundingClientRect().top);
+      return els.filter((el) => Math.round(el.getBoundingClientRect().top) === top).length;
     });
 
-    // One card fills the carousel on a phone; three share it on desktop.
-    const expected = testInfo.project.name === "mobile" ? 1 : 1 / 3;
-    expect(Math.abs(ratio - expected)).toBeLessThan(0.08);
+    if (testInfo.project.name === "mobile") expect(perRow).toBe(1);
+    else expect(perRow).toBeGreaterThanOrEqual(2);
   });
+
 });
 
 test.describe("crawler files", () => {
